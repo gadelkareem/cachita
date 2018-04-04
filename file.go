@@ -107,7 +107,7 @@ func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
 		return err
 	}
 	id := id(key)
-	go c.i.add(id, ExpiredAt(ttl, c.ttl))
+	c.i.add(id, ExpiredAt(ttl, c.ttl))
 	return ioutil.WriteFile(c.path(id), data, 0666)
 }
 

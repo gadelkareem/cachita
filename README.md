@@ -56,6 +56,7 @@ func ExampleCache() {
 ## Benchmark
 
 ```
+> go test -v -bench=. -benchmem
 BenchmarkMemoryCacheWithInt-8            	  300000	      5434 ns/op	     729 B/op	      14 allocs/op
 BenchmarkMemoryCacheWithString-8         	  300000	      5489 ns/op	     757 B/op	      14 allocs/op
 BenchmarkMemoryCacheWithMapInterface-8   	  300000	      5819 ns/op	    1125 B/op	      16 allocs/op
@@ -71,3 +72,4 @@ Please go through [examples](https://godoc.org/github.com/gadelkareem/cachita#pk
 ## See also
 
 - [Golang Helpers](https://github.com/gadelkareem/go-helpers)
+
