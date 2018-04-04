@@ -1,4 +1,4 @@
-package cache
+package cachita
 
 import (
 	"fmt"
@@ -114,7 +114,11 @@ func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
 func (c *file) Invalidate(key string) error {
 	id := id(key)
 	c.i.remove(id)
-	return os.Remove(c.path(id))
+	err := os.Remove(c.path(id))
+	if os.IsNotExist(err) {
+		return ErrNotFound
+	}
+	return err
 }
 
 func (c *file) path(id string) string {

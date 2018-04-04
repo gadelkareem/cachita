@@ -1,4 +1,4 @@
-package cache
+package cachita
 
 import (
 	"github.com/gadelkareem/go-helpers"
