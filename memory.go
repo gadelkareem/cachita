@@ -48,7 +48,7 @@ func (c *memory) Get(key string, i interface{}) error {
 }
 
 func (c *memory) Put(key string, i interface{}, ttl time.Duration) error {
-	r := &record{Data: i, ExpiredAt: ExpiredAt(ttl, c.ttl)}
+	r := &record{Data: i, ExpiredAt: expiredAt(ttl, c.ttl)}
 	c.recordsMu.Lock()
 	defer c.recordsMu.Unlock()
 	c.records[key] = r

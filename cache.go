@@ -26,8 +26,8 @@ type (
 )
 
 var (
-	ErrNotFound = newError("cache not found")
-	ErrExpired  = newError("cache expired")
+	ErrNotFound = newError("cachita: cache not found")
+	ErrExpired  = newError("cachita: cache expired")
 )
 
 func Id(params ...string) string {
@@ -40,7 +40,7 @@ func newError(msg string) cacheError {
 
 func (e cacheError) Error() string { return e.err.Error() }
 
-func ExpiredAt(ttl, defaultTtl time.Duration) (expiredAt time.Time) {
+func expiredAt(ttl, defaultTtl time.Duration) (expiredAt time.Time) {
 	if ttl == 0 {
 		expiredAt = time.Now().Add(defaultTtl)
 	} else if ttl == -1 {
