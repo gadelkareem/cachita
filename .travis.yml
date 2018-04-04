@@ -12,4 +12,5 @@ matrix:
     - go: tip
 
 install:
-  - go get github.com/stretchr/testify/assert
+  - go get github.com/stretchr/testify/assert 
+  - go get github.com/gadelkareem/go-helpers
