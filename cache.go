@@ -1,9 +1,9 @@
 package cachita
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gadelkareem/go-helpers"
-	"github.com/pkg/errors"
 	"reflect"
 	"strings"
 	"time"
