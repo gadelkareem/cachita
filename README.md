@@ -42,6 +42,8 @@ func ExampleCache() {
 		panic(err)
 	}
 
+	fmt.Printf("%s", holder) //prints "some data"
+
 	err = cache.Invalidate("cache_key")
 	if err != nil {
 		panic(err)
