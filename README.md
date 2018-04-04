@@ -54,7 +54,12 @@ func ExampleCache() {
 ## Benchmark
 
 ```
-
+BenchmarkMemoryCacheWithInt-8            	  300000	      5434 ns/op	     729 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithString-8         	  300000	      5489 ns/op	     757 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithMapInterface-8   	  300000	      5819 ns/op	    1125 B/op	      16 allocs/op
+BenchmarkMemoryCacheWithStruct-8         	  200000	      6523 ns/op	    1321 B/op	      21 allocs/op
+BenchmarkFileCacheWithInt-8              	  300000	      5423 ns/op	     729 B/op	      14 allocs/op
+BenchmarkFileCacheWithString-8           	    5000	    362113 ns/op	    3812 B/op	      55 allocs/op
 ```
 
 ## Howto
