@@ -34,7 +34,7 @@ func File() (Cache, error) {
 			return nil, err
 		}
 		path = filepath.Join(path, "tmp/file-cache")
-		fCache, err = NewFileCache(path, 24*time.Hour, 1*time.Hour)
+		fCache, err = NewFileCache(path, 24*time.Hour, 5*time.Minute)
 		if err != nil {
 			return nil, err
 		}
@@ -44,28 +44,8 @@ func File() (Cache, error) {
 
 func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 	var (
-		currentDir string
-		err        error
+		err error
 	)
-	if ok, _ := exists(dir); !ok {
-		err = os.MkdirAll(dir, os.ModePerm)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	characters := "0123456789abcdefghijklmnopqrstuvwxyz"
-	for _, char1 := range characters {
-		for _, char2 := range characters {
-			currentDir = filepath.Join(dir, string(char1), string(char2))
-			if ok, _ := exists(currentDir); !ok {
-				err = os.MkdirAll(currentDir, os.ModePerm)
-				if err != nil {
-					return nil, err
-				}
-			}
-		}
-	}
 
 	i, err := newIndex(dir, ttl)
 	if err != nil {
@@ -79,10 +59,6 @@ func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 	}
 
 	helpers.RunEvery(tickerTtl, func() {
-		err := c.Put(FileIndex, &c.i, -1)
-		if err != nil {
-			fmt.Printf("cachita: error writing index file: %v", err)
-		}
 		c.deleteExpired()
 	})
 
@@ -102,13 +78,9 @@ func (c *file) Get(key string, i interface{}) error {
 	return readData(c.path(id), i)
 }
 func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
-	data, err := msgpack.Marshal(i)
-	if err != nil {
-		return err
-	}
 	id := id(key)
-	c.i.add(id, ExpiredAt(ttl, c.ttl))
-	return ioutil.WriteFile(c.path(id), data, 0666)
+	c.i.add(id, expiredAt(ttl, c.ttl))
+	return writeData(c.path(id), i)
 }
 
 func (c *file) Invalidate(key string) error {
@@ -137,25 +109,49 @@ func (c *file) deleteExpired() {
 func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 	i = &fileIndex{path: filepath.Join(dir, id(FileIndex))}
 	i.records = make(map[string]time.Time)
+
 	err = readData(i.path, &i)
 	if err != nil && err != ErrNotFound {
 		return
 	}
 
-	files, err := ioutil.ReadDir(dir)
-	if err != nil {
-		return
-	}
+	var (
+		currentDir string
+		files      []os.FileInfo
+	)
 	i.Lock()
 	defer i.Unlock()
-	for _, f := range files {
-		expiredAt := f.ModTime().Add(ttl)
-		if expiredAt.Before(time.Now()) {
-			i.records[f.Name()] = expiredAt
+	characters := "0123456789abcdefghijklmnopqrstuvwxyz"
+	for _, char1 := range characters {
+		for _, char2 := range characters {
+			currentDir = filepath.Join(dir, string(char1), string(char2))
+			if ok, _ := exists(currentDir); !ok {
+				err = os.MkdirAll(currentDir, os.ModePerm)
+				if err != nil {
+					return
+				}
+			}
+			files, err = ioutil.ReadDir(currentDir)
+			if err != nil {
+				return
+			}
+
+			for _, f := range files {
+				if f.IsDir() {
+					continue
+				}
+				if _, exists := i.records[f.Name()]; exists {
+					continue
+				}
+				expiredAt := f.ModTime().Add(ttl)
+				if expiredAt.After(time.Now()) {
+					i.records[f.Name()] = expiredAt
+				}
+			}
 		}
 	}
 
-	return
+	return i, nil
 }
 
 func (i *fileIndex) check(id string) error {
@@ -186,6 +182,10 @@ func (i *fileIndex) expiredRecords() []string {
 		records[id] = expiredAt
 	}
 	i.records = records
+	err := writeData(i.path, i)
+	if err != nil {
+		fmt.Printf("cachita: error writing index file: %v", err)
+	}
 	return expired
 }
 
@@ -232,4 +232,11 @@ func readData(path string, i interface{}) error {
 		return err
 	}
 	return nil
+}
+func writeData(path string, i interface{}) error {
+	data, err := msgpack.Marshal(i)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(path, data, 0666)
 }
