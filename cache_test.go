@@ -114,6 +114,33 @@ func BenchmarkFileCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(c, b)
 }
 
+func TestFileIndexFileCreated(t *testing.T) {
+	t.Parallel()
+	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	isError(err, t)
+	path = filepath.Join(path, "tmp5/file-cache")
+	c, err := NewFileCache(path, 1*time.Millisecond, 1000*time.Millisecond)
+	isError(err, t)
+	assert.NotNil(t, c)
+	k := "x4"
+	s := "⺌∅‿∅⺌"
+	ttl := 1 * time.Hour
+	isError(c.Put(k, s, ttl), t)
+	time.Sleep(1500 * time.Millisecond)
+	indexPath := filepath.Join(path, id(FileIndex))
+	assert.FileExists(t, indexPath)
+	var i fileIndex
+	isError(readData(indexPath, &i.records), t)
+	e, exists := i.records[id(k)]
+	assert.True(t, exists, "Index file should have the record id")
+	assert.True(t, e.After(time.Now().Add(ttl-2*time.Second)), "Index expiry should equal first set expiry")
+	c, err = NewFileCache(path, 1*time.Millisecond, 1*time.Hour)
+	isError(err, t)
+	var d string
+	isError(c.Get(k, &d), t)
+	assert.Equal(t, &s, &d)
+}
+
 //-----------------------------------------------------
 
 func newCache(c Cache, t *testing.T) {

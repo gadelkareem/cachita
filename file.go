@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gadelkareem/go-helpers"
 	"github.com/vmihailenco/msgpack"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -110,7 +111,7 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 	i = &fileIndex{path: filepath.Join(dir, id(FileIndex))}
 	i.records = make(map[string]time.Time)
 
-	err = readData(i.path, &i)
+	err = readData(i.path, &i.records)
 	if err != nil && err != ErrNotFound {
 		return
 	}
@@ -150,7 +151,6 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 			}
 		}
 	}
-
 	return i, nil
 }
 
@@ -182,7 +182,7 @@ func (i *fileIndex) expiredRecords() []string {
 		records[id] = expiredAt
 	}
 	i.records = records
-	err := writeData(i.path, i)
+	err := writeData(i.path, &i.records)
 	if err != nil {
 		fmt.Printf("cachita: error writing index file: %v", err)
 	}
@@ -222,13 +222,16 @@ func exists(path string) (bool, error) {
 func readData(path string, i interface{}) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		if os.IsNotExist(err) {
+		if os.IsNotExist(err) || err == io.EOF {
 			return ErrNotFound
 		}
 		return err
 	}
 	err = msgpack.Unmarshal(data, i)
 	if err != nil {
+		if err == io.EOF {
+			return ErrNotFound
+		}
 		return err
 	}
 	return nil
