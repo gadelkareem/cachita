@@ -38,13 +38,15 @@ func ExampleCache() {
 func ExampleMemory() {
 	var u url.URL
 	cacheId := cachita.Id(u.Scheme, u.Host, u.RequestURI())
-	cacheObj := make(map[string]interface{})
-	cacheObj["test"] = "data"
-	err := cachita.Memory().Get(cacheId, cacheObj)
+	obj := make(map[string]interface{})
+	obj["test"] = "data"
+	err := cachita.Memory().Put(cacheId, obj, 0)
 	if err != nil && err != cachita.ErrNotFound && err != cachita.ErrExpired {
 		panic(err)
 	}
 
+	var cacheObj map[string]interface{}
+	err = cachita.Memory().Get(cacheId, &cacheObj)
 	fmt.Printf("%+v", cacheObj)
 
 	//Output: map[test:data]
