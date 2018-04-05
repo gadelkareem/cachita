@@ -64,7 +64,7 @@ func TestFileCacheExpires(t *testing.T) {
 	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	isError(err, t)
 	path = filepath.Join(path, "tmp2/file-cache")
-	c, err := NewFileCache(path, 2*time.Minute, 5*time.Millisecond)
+	c, err := NewFileCache(path, 2*time.Minute, 100*time.Millisecond)
 	isError(err, t)
 	cacheExpires(c, t)
 }
@@ -160,10 +160,10 @@ func cacheExpires(c Cache, t *testing.T) {
 	var d string
 	s := "><(((('>"
 	k := "><>"
-	err := c.Put(k, s, 1*time.Millisecond)
+	err := c.Put(k, s, 50*time.Millisecond)
 	isError(err, t)
 	assert.True(t, c.Exists(k))
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	assert.False(t, c.Exists(k))
 
 	err = c.Get(k, &d)
