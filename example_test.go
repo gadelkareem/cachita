@@ -41,12 +41,15 @@ func ExampleMemory() {
 	obj := make(map[string]interface{})
 	obj["test"] = "data"
 	err := cachita.Memory().Put(cacheId, obj, 0)
-	if err != nil && err != cachita.ErrNotFound && err != cachita.ErrExpired {
+	if err != nil {
 		panic(err)
 	}
 
 	var cacheObj map[string]interface{}
 	err = cachita.Memory().Get(cacheId, &cacheObj)
+	if err != nil && err != cachita.ErrNotFound && err != cachita.ErrExpired {
+		panic(err)
+	}
 	fmt.Printf("%+v", cacheObj)
 
 	//Output: map[test:data]
