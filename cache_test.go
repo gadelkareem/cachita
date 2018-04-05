@@ -53,12 +53,14 @@ func BenchmarkMemoryCacheWithStruct(b *testing.B) {
 //---- File
 
 func TestNewFileCache(t *testing.T) {
+	t.Parallel()
 	c, err := File()
 	isError(err, t)
 	newCache(c, t)
 }
 
 func TestFileCacheExpires(t *testing.T) {
+	t.Parallel()
 	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	isError(err, t)
 	path = filepath.Join(path, "tmp2/file-cache")
@@ -68,6 +70,7 @@ func TestFileCacheExpires(t *testing.T) {
 }
 
 func TestFileCacheWithInt(t *testing.T) {
+	t.Parallel()
 	cacheWithInt(Memory(), "x", t)
 }
 func BenchmarkFileCacheWithInt(b *testing.B) {
@@ -75,6 +78,7 @@ func BenchmarkFileCacheWithInt(b *testing.B) {
 }
 
 func TestFileCacheWithString(t *testing.T) {
+	t.Parallel()
 	c, err := File()
 	isError(err, t)
 	cacheWithString(c, "x1", t)
@@ -88,6 +92,7 @@ func BenchmarkFileCacheWithString(b *testing.B) {
 
 func TestFileCacheWithMapInterface(t *testing.T) {
 	t.Skip("msgpack problem")
+	t.Parallel()
 	c, err := File()
 	isError(err, t)
 	cacheWithMapInterface(c, "x2", t)
@@ -102,6 +107,7 @@ func BenchmarkFileCacheWithMapInterface(b *testing.B) {
 
 func TestFileCacheWithStruct(t *testing.T) {
 	t.Skip("msgpack problem")
+	t.Parallel()
 	c, err := File()
 	isError(err, t)
 	cacheWithStruct(c, "x3", t)
@@ -114,19 +120,19 @@ func BenchmarkFileCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(c, b)
 }
 
-func TestFileIndexFileCreated(t *testing.T) {
+func TestIndexFileCreated(t *testing.T) {
 	t.Parallel()
 	path, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	isError(err, t)
 	path = filepath.Join(path, "tmp5/file-cache")
-	c, err := NewFileCache(path, 1*time.Millisecond, 1000*time.Millisecond)
+	c, err := NewFileCache(path, 1*time.Millisecond, 100*time.Millisecond)
 	isError(err, t)
 	assert.NotNil(t, c)
 	k := "x4"
 	s := "⺌∅‿∅⺌"
 	ttl := 1 * time.Hour
 	isError(c.Put(k, s, ttl), t)
-	time.Sleep(1500 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
 	indexPath := filepath.Join(path, id(FileIndex))
 	assert.FileExists(t, indexPath)
 	var i fileIndex
@@ -144,7 +150,6 @@ func TestFileIndexFileCreated(t *testing.T) {
 //-----------------------------------------------------
 
 func newCache(c Cache, t *testing.T) {
-	t.Parallel()
 	var d string
 	s := "╭∩╮(Ο_Ο)╭∩╮"
 	k := "٩(̾●̮̮̃̾•̃̾)۶"
@@ -152,14 +157,13 @@ func newCache(c Cache, t *testing.T) {
 }
 
 func cacheExpires(c Cache, t *testing.T) {
-	t.Parallel()
 	var d string
 	s := "><(((('>"
 	k := "><>"
 	err := c.Put(k, s, 1*time.Millisecond)
 	isError(err, t)
 	assert.True(t, c.Exists(k))
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	assert.False(t, c.Exists(k))
 
 	err = c.Get(k, &d)
