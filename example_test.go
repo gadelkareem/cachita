@@ -35,7 +35,7 @@ func ExampleCache() {
 
 }
 
-func ExampleCachingPageContents() {
+func ExampleMemory() {
 	var u url.URL
 	cacheId := cachita.Id(u.Scheme, u.Host, u.RequestURI())
 	cacheObj := make(map[string]interface{})
@@ -51,7 +51,7 @@ func ExampleCachingPageContents() {
 
 }
 
-func ExampleFileCache() {
+func ExampleFile() {
 	cache, err := cachita.File()
 	if err != nil {
 		panic(err)
@@ -74,7 +74,7 @@ func ExampleFileCache() {
 
 }
 
-func ExampleCustomMemoryCache() {
+func ExampleNewMemoryCache() {
 	cache := cachita.NewMemoryCache(1*time.Millisecond, 1*time.Minute) //default ttl 1 millisecond
 
 	err := cache.Put("cache_key", "some data", 0) //ttl = 0 means use default
