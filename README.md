@@ -49,6 +49,8 @@ func ExampleCache() {
 		panic(err)
 	}
 
+	//Output: some data
+
 }
 
 ```

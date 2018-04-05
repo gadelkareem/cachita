@@ -31,18 +31,23 @@ func ExampleCache() {
 		panic(err)
 	}
 
+	//Output: some data
+
 }
 
 func ExampleCachingPageContents() {
 	var u url.URL
 	cacheId := cachita.Id(u.Scheme, u.Host, u.RequestURI())
-	var cacheObj map[string]interface{}
+	cacheObj := make(map[string]interface{})
+	cacheObj["test"] = "data"
 	err := cachita.Memory().Get(cacheId, cacheObj)
 	if err != nil && err != cachita.ErrNotFound && err != cachita.ErrExpired {
 		panic(err)
 	}
 
 	fmt.Printf("%+v", cacheObj)
+
+	//Output: map[test:data]
 
 }
 
@@ -56,17 +61,30 @@ func ExampleFileCache() {
 	if err != nil {
 		panic(err)
 	}
-	//...
+
+	var holder string
+	err = cache.Get("cache_key", &holder)
+	if err != nil && err != cachita.ErrNotFound {
+		panic(err)
+	}
+
+	fmt.Printf("%s", holder) //prints "some data"
+
+	//Output: some data
 
 }
 
 func ExampleCustomMemoryCache() {
-	cache := cachita.NewMemoryCache(1*time.Minute, 1*time.Minute)
+	cache := cachita.NewMemoryCache(1*time.Millisecond, 1*time.Minute) //default ttl 1 millisecond
 
-	err := cache.Put("cache_key", "some data", 1*time.Minute)
+	err := cache.Put("cache_key", "some data", 0) //ttl = 0 means use default
 	if err != nil {
 		panic(err)
 	}
-	//...
+
+	time.Sleep(2 * time.Millisecond)
+	fmt.Printf("%t", cache.Exists("cache_key"))
+
+	//Output: false
 
 }
