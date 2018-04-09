@@ -128,7 +128,6 @@ func TypeAssert(source, target interface{}) (err error) {
 	if !s.IsValid() {
 		return errors.New("cachita: source is not valid")
 	}
-	s = deReference(s)
 	v.Set(s)
 	return nil
 }
