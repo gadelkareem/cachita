@@ -238,18 +238,18 @@ func benchmarkCacheWithStruct(c Cache, b *testing.B) {
 
 func cacheWithStruct(c Cache, k string, t assert.TestingT) {
 	type str struct {
-		a int
-		b string
-		c []string
-		d map[string]interface{}
+		A int
+		B string
+		C []string
+		D map[string]interface{}
 	}
 	s := str{
-		a: 1,
-		b: "┌∩┐(◣_◢)┌∩┐",
-		c: []string{
+		A: 1,
+		B: "┌∩┐(◣_◢)┌∩┐",
+		C: []string{
 			"(♥_♥)", "ε(´סּ︵סּ`)з",
 		},
-		d: map[string]interface{}{
+		D: map[string]interface{}{
 			"Ƹ̵̡Ӝ̵̨̄Ʒ": 1,
 			"ô¿ô":      "┌∩┐(◣_◢)┌∩┐",
 			"(̾●̮̮̃̾•̃̾)۶": []string{
