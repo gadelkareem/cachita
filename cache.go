@@ -122,12 +122,12 @@ func TypeAssert(source, target interface{}) (err error) {
 	if !v.IsValid() {
 		return fmt.Errorf("cachita: target is not a settable %T", target)
 	}
-	v = deReference(v)
 
 	s := reflect.ValueOf(source)
 	if !s.IsValid() {
 		return errors.New("cachita: source is not valid")
 	}
+	s = deReference(s)
 	v.Set(s)
 	return nil
 }
