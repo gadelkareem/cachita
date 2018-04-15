@@ -133,11 +133,11 @@ func TestIndexFileCreated(t *testing.T) {
 	ttl := 1 * time.Hour
 	isError(c.Put(k, s, ttl), t)
 	time.Sleep(150 * time.Millisecond)
-	indexPath := filepath.Join(path, id(FileIndex))
+	indexPath := filepath.Join(path, Id(FileIndex))
 	assert.FileExists(t, indexPath)
 	var i fileIndex
 	isError(readData(indexPath, &i.records), t)
-	e, exists := i.records[id(k)]
+	e, exists := i.records[Id(k)]
 	assert.True(t, exists, "Index file should have the record id")
 	assert.True(t, e.After(time.Now().Add(ttl-2*time.Second)), "Index expiry should equal first set expiry")
 	c, err = NewFileCache(path, 1*time.Millisecond, 1*time.Hour)
