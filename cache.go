@@ -1,9 +1,10 @@
 package cachita
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/gadelkareem/go-helpers"
 	"reflect"
 	"strings"
 	"time"
@@ -30,10 +31,6 @@ var (
 	ErrExpired  = newError("cachita: cache expired")
 )
 
-func Id(params ...string) string {
-	return strings.ToLower(helpers.Md5(strings.Join(params, "_")))
-}
-
 func newError(msg string) cacheError {
 	return cacheError{errors.New(msg)}
 }
@@ -49,6 +46,24 @@ func expiredAt(ttl, defaultTtl time.Duration) (expiredAt time.Time) {
 		expiredAt = time.Now().Add(ttl)
 	}
 	return
+}
+
+func Id(params ...string) string {
+	s := strings.Join(params, "_")
+	hash := md5.Sum([]byte(s))
+	return hex.EncodeToString(hash[:])
+}
+
+func runEvery(ttl time.Duration, f func()) {
+	ticker := time.NewTicker(ttl)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				f()
+			}
+		}
+	}()
 }
 
 func TypeAssert(source, target interface{}) (err error) {

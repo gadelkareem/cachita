@@ -1,7 +1,6 @@
 package cachita
 
 import (
-	"github.com/gadelkareem/go-helpers"
 	"sync"
 	"time"
 )
@@ -27,7 +26,7 @@ func NewMemoryCache(ttl, tickerTtl time.Duration) Cache {
 		ttl:     ttl,
 	}
 
-	helpers.RunEvery(tickerTtl, func() {
+	runEvery(tickerTtl, func() {
 		c.deleteExpired()
 	})
 

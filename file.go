@@ -2,14 +2,14 @@ package cachita
 
 import (
 	"fmt"
-	"github.com/gadelkareem/go-helpers"
-	"github.com/vmihailenco/msgpack"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/vmihailenco/msgpack"
 )
 
 const FileIndex = "github.com/gadelkareem/cachita/file-index"
@@ -47,7 +47,6 @@ func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 	var (
 		err error
 	)
-
 	i, err := newIndex(dir, ttl)
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 		i:   i,
 	}
 
-	helpers.RunEvery(tickerTtl, func() {
+	runEvery(tickerTtl, func() {
 		c.deleteExpired()
 	})
 
@@ -67,25 +66,25 @@ func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 }
 
 func (c *file) Exists(key string) bool {
-	err := c.i.check(id(key))
+	err := c.i.check(Id(key))
 	return err == nil
 }
 
 func (c *file) Get(key string, i interface{}) error {
-	id := id(key)
+	id := Id(key)
 	if err := c.i.check(id); err != nil {
 		return err
 	}
 	return readData(c.path(id), i)
 }
 func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
-	id := id(key)
+	id := Id(key)
 	c.i.add(id, expiredAt(ttl, c.ttl))
 	return writeData(c.path(id), i)
 }
 
 func (c *file) Invalidate(key string) error {
-	id := id(key)
+	id := Id(key)
 	c.i.remove(id)
 	err := os.Remove(c.path(id))
 	if os.IsNotExist(err) {
@@ -108,7 +107,7 @@ func (c *file) deleteExpired() {
 //----------------------- fileIndex
 
 func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
-	i = &fileIndex{path: filepath.Join(dir, id(FileIndex))}
+	i = &fileIndex{path: filepath.Join(dir, Id(FileIndex))}
 	i.records = make(map[string]time.Time)
 
 	err = readData(i.path, &i.records)
@@ -122,7 +121,7 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 	)
 	i.Lock()
 	defer i.Unlock()
-	characters := "0123456789abcdefghijklmnopqrstuvwxyz"
+	characters := "0123456789abcdef"
 	for _, char1 := range characters {
 		for _, char2 := range characters {
 			currentDir = filepath.Join(dir, string(char1), string(char2))
@@ -150,6 +149,10 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 				}
 			}
 		}
+	}
+	err = writeData(i.path, &i.records)
+	if err != nil {
+		return nil, err
 	}
 	return i, nil
 }
@@ -203,10 +206,6 @@ func (i *fileIndex) remove(id string) {
 }
 
 //--------------------
-
-func id(key string) string {
-	return helpers.Md5(key)
-}
 
 func exists(path string) (bool, error) {
 	_, err := os.Stat(path)

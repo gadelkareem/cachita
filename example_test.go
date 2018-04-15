@@ -2,9 +2,10 @@ package cachita_test
 
 import (
 	"fmt"
-	"github.com/gadelkareem/cachita"
 	"net/url"
 	"time"
+
+	"github.com/gadelkareem/cachita"
 )
 
 func ExampleCache() {
