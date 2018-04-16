@@ -15,7 +15,7 @@ type memory struct {
 
 func Memory() Cache {
 	if mCache == nil {
-		mCache = NewMemoryCache(10*time.Minute, 10*time.Minute)
+		mCache = NewMemoryCache(1*time.Minute, 1*time.Minute)
 	}
 	return mCache
 }
