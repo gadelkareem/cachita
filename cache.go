@@ -17,9 +17,6 @@ type (
 		Exists(key string) bool
 		Invalidate(key string) error
 	}
-	cacheError struct {
-		err error
-	}
 	record struct {
 		Data      interface{}
 		ExpiredAt time.Time
@@ -27,15 +24,9 @@ type (
 )
 
 var (
-	ErrNotFound = newError("cachita: cache not found")
-	ErrExpired  = newError("cachita: cache expired")
+	ErrNotFound = errors.New("cachita: cache not found")
+	ErrExpired  = errors.New("cachita: cache expired")
 )
-
-func newError(msg string) cacheError {
-	return cacheError{errors.New(msg)}
-}
-
-func (e cacheError) Error() string { return e.err.Error() }
 
 func expiredAt(ttl, defaultTtl time.Duration) (expiredAt time.Time) {
 	if ttl == 0 {
@@ -46,6 +37,10 @@ func expiredAt(ttl, defaultTtl time.Duration) (expiredAt time.Time) {
 		expiredAt = time.Now().Add(ttl)
 	}
 	return
+}
+
+func IsErrorOk(err error) bool {
+	return err == ErrNotFound || err == ErrExpired
 }
 
 func Id(params ...string) string {
