@@ -57,11 +57,11 @@ func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 		ttl: ttl,
 		i:   i,
 	}
-
-	runEvery(tickerTtl, func() {
-		c.deleteExpired()
-	})
-
+	if tickerTtl != 0 {
+		runEvery(tickerTtl, func() {
+			c.deleteExpired()
+		})
+	}
 	return c, nil
 }
 
