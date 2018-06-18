@@ -106,7 +106,7 @@ func (c *db) Exists(key string) bool {
 }
 
 func (c *db) deleteExpired() {
-	c.db.Exec("DELETE FROM "+c.tableName+" WHERE expired_at >= "+c.placeholder(1), time.Now().Unix())
+	c.db.Exec("DELETE FROM "+c.tableName+" WHERE expired_at <= "+c.placeholder(1), time.Now().Unix())
 }
 
 func (c *db) createTable() error {
