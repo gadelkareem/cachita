@@ -28,13 +28,17 @@ var (
 	ErrExpired  = errors.New("cachita: cache expired")
 )
 
-func expiredAt(ttl, defaultTtl time.Duration) time.Time {
+func calculateTtl(ttl, defaultTtl time.Duration) time.Duration {
 	if ttl == 0 {
-		return time.Now().Add(defaultTtl)
+		return defaultTtl
 	} else if ttl == -1 {
-		return time.Now().Add((100000) * time.Hour) // 11 years
+		return 100000 * time.Hour // 11 years
 	}
-	return time.Now().Add(ttl)
+	return ttl
+}
+
+func expiredAt(ttl, defaultTtl time.Duration) time.Time {
+	return time.Now().Add(calculateTtl(ttl, defaultTtl))
 }
 
 func IsErrorOk(err error) bool {
