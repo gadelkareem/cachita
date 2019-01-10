@@ -13,18 +13,21 @@ func newCache(c Cache, t *testing.T) {
 	test(c, k, &s, &d, t)
 }
 
-func cacheExpires(c Cache, t *testing.T) {
+func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 	var d string
 	s := "><(((('>"
 	k := "><>"
-	err := c.Put(k, s, 50*time.Millisecond)
+	err := c.Put(k, s, ttl)
 	isError(err, t)
 	assert.True(t, c.Exists(k))
-	time.Sleep(150 * time.Millisecond)
+	time.Sleep(tts)
 	assert.False(t, c.Exists(k))
 
 	err = c.Get(k, &d)
 	assert.Equal(t, err, ErrNotFound)
+	if err != ErrNotFound {
+		isError(err, t)
+	}
 }
 
 func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t assert.TestingT, s, d interface{})) {

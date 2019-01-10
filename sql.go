@@ -3,12 +3,15 @@ package cachita
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/vmihailenco/msgpack"
 )
 
-type db struct {
+var sCache Cache
+
+type sqlCache struct {
 	db         *sql.DB
 	tableName  string
 	ttl        time.Duration
@@ -21,8 +24,22 @@ type row struct {
 	ExpiredAt int64
 }
 
-func NewDbCache(ttl, tickerTtl time.Duration, sql *sql.DB, tableName string, isPostgres ...bool) (Cache, error) {
-	c := &db{
+func Sql(driverName, dataSourceName string) (Cache, error) {
+	if sCache == nil {
+		sqlDriver, err := sql.Open(driverName, dataSourceName)
+		if err != nil {
+			return nil, err
+		}
+		sCache, err = NewSqlCache(24*time.Hour, 5*time.Hour, sqlDriver, "cachita_cache", strings.Contains(dataSourceName, "postgres"))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return sCache, nil
+}
+
+func NewSqlCache(ttl, tickerTtl time.Duration, sql *sql.DB, tableName string, isPostgres ...bool) (Cache, error) {
+	c := &sqlCache{
 		db:        sql,
 		tableName: tableName,
 		ttl:       ttl,
@@ -42,7 +59,7 @@ func NewDbCache(ttl, tickerTtl time.Duration, sql *sql.DB, tableName string, isP
 	return c, nil
 }
 
-func (c *db) Get(key string, i interface{}) error {
+func (c *sqlCache) Get(key string, i interface{}) error {
 	r, err := c.row(Id(key))
 
 	if err != nil {
@@ -60,7 +77,7 @@ func (c *db) Get(key string, i interface{}) error {
 	return msgpack.Unmarshal(r.Value, i)
 }
 
-func (c *db) row(id string) (*row, error) {
+func (c *sqlCache) row(id string) (*row, error) {
 	r := new(row)
 	r.Id = id
 	query := "SELECT data, expired_at FROM " + c.tableName + " WHERE id = " + c.placeholder(1)
@@ -68,7 +85,7 @@ func (c *db) row(id string) (*row, error) {
 	return r, err
 }
 
-func (c *db) Put(key string, i interface{}, ttl time.Duration) error {
+func (c *sqlCache) Put(key string, i interface{}, ttl time.Duration) error {
 	r, err := c.row(Id(key))
 	if err != nil && err != sql.ErrNoRows {
 		return err
@@ -88,12 +105,12 @@ func (c *db) Put(key string, i interface{}, ttl time.Duration) error {
 	return err
 }
 
-func (c *db) Invalidate(key string) error {
+func (c *sqlCache) Invalidate(key string) error {
 	_, err := c.db.Exec("DELETE FROM "+c.tableName+" WHERE id = "+c.placeholder(1), Id(key))
 	return err
 }
 
-func (c *db) Exists(key string) bool {
+func (c *sqlCache) Exists(key string) bool {
 	r, _ := c.row(Id(key))
 	if r.Value != nil {
 		expiredAt := time.Unix(r.ExpiredAt, 0)
@@ -105,11 +122,11 @@ func (c *db) Exists(key string) bool {
 	return false
 }
 
-func (c *db) deleteExpired() {
+func (c *sqlCache) deleteExpired() {
 	c.db.Exec("DELETE FROM "+c.tableName+" WHERE expired_at <= "+c.placeholder(1), time.Now().Unix())
 }
 
-func (c *db) createTable() error {
+func (c *sqlCache) createTable() error {
 	dataColumnType := "blob"
 	if c.isPostgres {
 		dataColumnType = "bytea"
@@ -121,7 +138,7 @@ func (c *db) createTable() error {
 	return nil
 }
 
-func (c *db) placeholder(index int) string {
+func (c *sqlCache) placeholder(index int) string {
 	if c.isPostgres {
 		return "$" + strconv.Itoa(index)
 	}

@@ -10,9 +10,7 @@ import (
 
 func TestNewFileCache(t *testing.T) {
 	t.Parallel()
-	c, err := File()
-	isError(err, t)
-	newCache(c, t)
+	newCache(fc(t), t)
 }
 
 func TestFileCacheExpires(t *testing.T) {
@@ -22,58 +20,42 @@ func TestFileCacheExpires(t *testing.T) {
 	path = filepath.Join(path, "tmp2/file-cache")
 	c, err := NewFileCache(path, 2*time.Minute, 100*time.Millisecond)
 	isError(err, t)
-	cacheExpires(c, t)
+	cacheExpires(c, t, 50*time.Millisecond, 150*time.Millisecond)
 }
 
 func TestFileCacheWithInt(t *testing.T) {
 	t.Parallel()
-	c, err := File()
-	isError(err, t)
-	cacheWithInt(c, "x", t)
+	cacheWithInt(fc(t), "x", t)
 }
 func BenchmarkFileCacheWithInt(b *testing.B) {
-	c, err := File()
-	isError(err, b)
-	benchmarkCacheWithInt(c, b)
+	benchmarkCacheWithInt(fc(b), b)
 }
 
 func TestFileCacheWithString(t *testing.T) {
 	t.Parallel()
-	c, err := File()
-	isError(err, t)
-	cacheWithString(c, "x1", t)
+	cacheWithString(fc(t), "x1", t)
 }
 
 func BenchmarkFileCacheWithString(b *testing.B) {
-	c, err := File()
-	isError(err, b)
-	benchmarkCacheWithString(c, b)
+	benchmarkCacheWithString(fc(b), b)
 }
 
 func TestFileCacheWithMapInterface(t *testing.T) {
 	t.Parallel()
-	c, err := File()
-	isError(err, t)
-	cacheWithMapInterface(c, "x2", t)
+	cacheWithMapInterface(fc(t), "x2", t)
 }
 
 func BenchmarkFileCacheWithMapInterface(b *testing.B) {
-	c, err := File()
-	isError(err, b)
-	benchmarkCacheWithMapInterface(c, b)
+	benchmarkCacheWithMapInterface(fc(b), b)
 }
 
 func TestFileCacheWithStruct(t *testing.T) {
 	t.Parallel()
-	c, err := File()
-	isError(err, t)
-	cacheWithStruct(c, "x3", t)
+	cacheWithStruct(fc(t), "x3", t)
 }
 
 func BenchmarkFileCacheWithStruct(b *testing.B) {
-	c, err := File()
-	isError(err, b)
-	benchmarkCacheWithStruct(c, b)
+	benchmarkCacheWithStruct(fc(b), b)
 }
 
 func TestIndexFileCreated(t *testing.T) {
@@ -101,4 +83,10 @@ func TestIndexFileCreated(t *testing.T) {
 	var d string
 	isError(c.Get(k, &d), t)
 	assert.Equal(t, &s, &d)
+}
+
+func fc(t assert.TestingT) (c Cache) {
+	c, err := File()
+	isError(err, t)
+	return
 }

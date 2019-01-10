@@ -2,15 +2,21 @@ sudo: false
 language: go
 
 go:
-  - 1.7.x
-  - 1.8.x
-  - 1.9.x
-  - tip
+- 1.7.x
+- 1.8.x
+- 1.9.x
+- tip
 
 matrix:
   allow_failures:
-    - go: tip
+  - go: tip
+
+services:
+- postgresql
+
+before_script:
+- psql -c 'create database test;' -U postgres
 
 install:
-  - go get github.com/stretchr/testify/assert
-  - go get github.com/vmihailenco/msgpack
+- go get github.com/stretchr/testify/assert
+- go get github.com/vmihailenco/msgpack

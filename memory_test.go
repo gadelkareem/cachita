@@ -10,7 +10,7 @@ func TestNewMemoryCache(t *testing.T) {
 }
 
 func TestMemoryCacheExpires(t *testing.T) {
-	cacheExpires(NewMemoryCache(2*time.Minute, 5*time.Millisecond), t)
+	cacheExpires(NewMemoryCache(2*time.Minute, 5*time.Millisecond), t, 50*time.Millisecond, 150*time.Millisecond)
 }
 
 func TestMemoryCacheWithInt(t *testing.T) {

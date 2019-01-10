@@ -59,14 +59,18 @@ func ExampleCache() {
 
 ```
 > go test -v -bench=. -benchmem
-BenchmarkMemoryCacheWithInt-8            	  300000	      4835 ns/op	     728 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithString-8         	  300000	      4961 ns/op	     756 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithMapInterface-8   	  200000	      7257 ns/op	    1444 B/op	      20 allocs/op
-BenchmarkMemoryCacheWithStruct-8         	  200000	     10913 ns/op	    2184 B/op	      33 allocs/op
-BenchmarkFileCacheWithInt-8              	  300000	      4806 ns/op	     728 B/op	      14 allocs/op
-BenchmarkFileCacheWithString-8           	    5000	    289063 ns/op	    3710 B/op	      47 allocs/op
-BenchmarkFileCacheWithMapInterface-8     	    5000	    306759 ns/op	    6036 B/op	      73 allocs/op
-BenchmarkFileCacheWithStruct-8           	    5000	    318247 ns/op	    7603 B/op	      94 allocs/op
+BenchmarkFileCacheWithInt-8              	    5000	    294487 ns/op	    3681 B/op	      46 allocs/op
+BenchmarkFileCacheWithString-8           	    5000	    289703 ns/op	    3710 B/op	      47 allocs/op
+BenchmarkFileCacheWithMapInterface-8     	    5000	    313341 ns/op	    6038 B/op	      73 allocs/op
+BenchmarkFileCacheWithStruct-8           	    5000	    327784 ns/op	    7597 B/op	      94 allocs/op
+BenchmarkMemoryCacheWithInt-8            	  300000	      5145 ns/op	     728 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithString-8         	  300000	      5344 ns/op	     756 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithMapInterface-8   	  200000	      7226 ns/op	    1444 B/op	      20 allocs/op
+BenchmarkMemoryCacheWithStruct-8         	  200000	     11230 ns/op	    2184 B/op	      33 allocs/op
+BenchmarkSqlCacheWithInt-8               	     100	  10351146 ns/op	    8422 B/op	     220 allocs/op
+BenchmarkSqlCacheWithString-8            	     200	   9000744 ns/op	    8265 B/op	     212 allocs/op
+BenchmarkSqlCacheWithMapInterface-8      	     200	  16634691 ns/op	   14931 B/op	     456 allocs/op
+BenchmarkSqlCacheWithStruct-8            	     200	   8496496 ns/op	   18325 B/op	     546 allocs/op
 ```
 
 ## Howto
