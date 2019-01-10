@@ -91,7 +91,6 @@ func BenchmarkFileCacheWithString(b *testing.B) {
 }
 
 func TestFileCacheWithMapInterface(t *testing.T) {
-	t.Skip("msgpack problem")
 	t.Parallel()
 	c, err := File()
 	isError(err, t)
@@ -99,14 +98,12 @@ func TestFileCacheWithMapInterface(t *testing.T) {
 }
 
 func BenchmarkFileCacheWithMapInterface(b *testing.B) {
-	b.Skip("msgpack problem")
 	c, err := File()
 	isError(err, b)
 	benchmarkCacheWithMapInterface(c, b)
 }
 
 func TestFileCacheWithStruct(t *testing.T) {
-	t.Skip("msgpack problem")
 	t.Parallel()
 	c, err := File()
 	isError(err, t)
@@ -114,7 +111,6 @@ func TestFileCacheWithStruct(t *testing.T) {
 }
 
 func BenchmarkFileCacheWithStruct(b *testing.B) {
-	b.Skip("msgpack problem")
 	c, err := File()
 	isError(err, b)
 	benchmarkCacheWithStruct(c, b)
@@ -170,7 +166,7 @@ func cacheExpires(c Cache, t *testing.T) {
 	assert.Equal(t, err, ErrNotFound)
 }
 
-func test(c Cache, k string, s, d interface{}, t assert.TestingT) {
+func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t assert.TestingT, s, d interface{})) {
 	err := c.Put(k, s, 0)
 	isError(err, t)
 
@@ -179,12 +175,15 @@ func test(c Cache, k string, s, d interface{}, t assert.TestingT) {
 	err = c.Get(k, d)
 	isError(err, t)
 
-	assert.Equal(t, s, d)
+	if len(f) > 0 {
+		f[0](t, s, d)
+	} else {
+		assert.Equal(t, s, d)
+	}
 
 	err = c.Invalidate(k)
 	isError(err, t)
 	assert.False(t, c.Exists(k))
-
 }
 
 func benchmarkCacheWithInt(c Cache, b *testing.B) {
@@ -221,13 +220,13 @@ func cacheWithMapInterface(c Cache, k string, t assert.TestingT) {
 	s := map[string]interface{}{
 		"Ƹ̵̡Ӝ̵̨̄Ʒ": 1,
 		"ô¿ô":      "┌∩┐(◣_◢)┌∩┐",
-		"●̮̮̃̾•": []string{
+		"●̮̮̃̾•": []interface{}{
 			"ooo", "°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸",
 			"♫♪.ılılıll|̲̅̅●̲̅̅|̲̅̅=̲̅̅|̲̅̅●̲̅̅|llılılı.♫♪",
 		},
 	}
 	var d map[string]interface{}
-	test(c, k, &s, &d, t)
+	test(c, k, &s, &d, t, compareMap)
 }
 
 func benchmarkCacheWithStruct(c Cache, b *testing.B) {
@@ -252,14 +251,29 @@ func cacheWithStruct(c Cache, k string, t assert.TestingT) {
 		D: map[string]interface{}{
 			"Ƹ̵̡Ӝ̵̨̄Ʒ": 1,
 			"ô¿ô":      "┌∩┐(◣_◢)┌∩┐",
-			"(̾●̮̮̃̾•̃̾)۶": []string{
+			"(̾●̮̮̃̾•̃̾)۶": []interface{}{
 				"ooo", "°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸",
 				"♫♪.ılılıll|̲̅̅●̲̅̅|̲̅̅=̲̅̅|̲̅̅●̲̅̅|llılılı.♫♪",
 			},
 		},
 	}
 	var d str
-	test(c, k, &s, &d, t)
+	test(c, k, &s, &d, t, func(t assert.TestingT, s1, d1 interface{}) {
+		s := s1.(*str)
+		d := d1.(*str)
+		assert.Equal(t, s.A, d.A)
+		assert.Equal(t, s.B, d.B)
+		assert.Equal(t, s.C, d.C)
+		compareMap(t, &s.D, &d.D)
+	})
+}
+
+func compareMap(t assert.TestingT, s1, d1 interface{}) {
+	s := *s1.(*map[string]interface{})
+	d := *d1.(*map[string]interface{})
+	for k := range s {
+		assert.EqualValues(t, s[k], d[k])
+	}
 }
 
 func isError(err error, t assert.TestingT) {
