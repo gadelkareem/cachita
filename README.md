@@ -1,5 +1,5 @@
 # Cachita
-Cachita is a golang file and memory cache library 
+Cachita is a golang file, memory, SQL, Redis cache library 
 
 [![Build Status](https://travis-ci.org/gadelkareem/cachita.svg)](https://travis-ci.org/gadelkareem/cachita)
 [![GoDoc](https://godoc.org/github.com/gadelkareem/cachita?status.svg)](https://godoc.org/github.com/gadelkareem/cachita)
@@ -59,12 +59,14 @@ func ExampleCache() {
 
 ```
 > go test -v -bench=. -benchmem
-BenchmarkMemoryCacheWithInt-8            	  300000	      5434 ns/op	     729 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithString-8         	  300000	      5489 ns/op	     757 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithMapInterface-8   	  300000	      5819 ns/op	    1125 B/op	      16 allocs/op
-BenchmarkMemoryCacheWithStruct-8         	  200000	      6523 ns/op	    1321 B/op	      21 allocs/op
-BenchmarkFileCacheWithInt-8              	  300000	      5423 ns/op	     729 B/op	      14 allocs/op
-BenchmarkFileCacheWithString-8           	    5000	    362113 ns/op	    3812 B/op	      55 allocs/op
+BenchmarkMemoryCacheWithInt-8            	  300000	      4835 ns/op	     728 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithString-8         	  300000	      4961 ns/op	     756 B/op	      14 allocs/op
+BenchmarkMemoryCacheWithMapInterface-8   	  200000	      7257 ns/op	    1444 B/op	      20 allocs/op
+BenchmarkMemoryCacheWithStruct-8         	  200000	     10913 ns/op	    2184 B/op	      33 allocs/op
+BenchmarkFileCacheWithInt-8              	  300000	      4806 ns/op	     728 B/op	      14 allocs/op
+BenchmarkFileCacheWithString-8           	    5000	    289063 ns/op	    3710 B/op	      47 allocs/op
+BenchmarkFileCacheWithMapInterface-8     	    5000	    306759 ns/op	    6036 B/op	      73 allocs/op
+BenchmarkFileCacheWithStruct-8           	    5000	    318247 ns/op	    7603 B/op	      94 allocs/op
 ```
 
 ## Howto
