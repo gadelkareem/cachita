@@ -17,6 +17,7 @@ services:
 
 before_script:
 - psql -c 'create database test;' -U postgres
+- go get -t -v ./...
 
 install:
 - go get github.com/stretchr/testify/assert

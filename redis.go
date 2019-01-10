@@ -2,7 +2,6 @@ package cachita
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"time"
 
 	"github.com/mediocregopher/radix"
@@ -47,7 +46,7 @@ func (rc *redis) Get(key string, i interface{}) error {
 	var data []byte
 	err := rc.pool.Do(radix.FlatCmd(&data, "GET", rc.k(key)))
 	if err != nil {
-		return errors.New(string(data))
+		return err
 	}
 	if data == nil {
 		return ErrNotFound
