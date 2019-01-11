@@ -60,22 +60,22 @@ func ExampleCache() {
 
 ```
 > go test -v -bench=. -benchmem
-BenchmarkMemoryCacheWithInt-8            	  300000	      4789 ns/op	     728 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithString-8         	  300000	      4886 ns/op	     756 B/op	      14 allocs/op
-BenchmarkMemoryCacheWithMapInterface-8   	  200000	      7276 ns/op	    1444 B/op	      20 allocs/op
-BenchmarkMemoryCacheWithStruct-8         	  200000	     10955 ns/op	    2184 B/op	      33 allocs/op
-BenchmarkFileCacheWithInt-8              	    5000	    284634 ns/op	    3681 B/op	      46 allocs/op
-BenchmarkFileCacheWithString-8           	    5000	    286430 ns/op	    3710 B/op	      47 allocs/op
-BenchmarkFileCacheWithMapInterface-8     	    5000	    306349 ns/op	    6039 B/op	      73 allocs/op
-BenchmarkFileCacheWithStruct-8           	    5000	    320347 ns/op	    7600 B/op	      94 allocs/op
-BenchmarkRedisCacheWithInt-8             	     500	   2764354 ns/op	    2525 B/op	      67 allocs/op
-BenchmarkRedisCacheWithString-8          	     500	   2927454 ns/op	    2548 B/op	      68 allocs/op
-BenchmarkRedisCacheWithMapInterface-8    	     500	   2954466 ns/op	    5167 B/op	      95 allocs/op
-BenchmarkRedisCacheWithStruct-8          	     500	   2884623 ns/op	    6802 B/op	     117 allocs/op
-BenchmarkSqlCacheWithInt-8               	     100	  10689678 ns/op	    8437 B/op	     221 allocs/op
-BenchmarkSqlCacheWithString-8            	     200	   9662987 ns/op	    8282 B/op	     212 allocs/op
-BenchmarkSqlCacheWithMapInterface-8      	     200	   8731074 ns/op	   14735 B/op	     453 allocs/op
-BenchmarkSqlCacheWithStruct-8            	     200	   8001558 ns/op	   18316 B/op	     546 allocs/op
+BenchmarkMemoryCacheWithInt-8            	 1000000	      1133 ns/op	     128 B/op	       7 allocs/op
+BenchmarkMemoryCacheWithString-8         	 1000000	      1163 ns/op	     144 B/op	       7 allocs/op
+BenchmarkMemoryCacheWithMapInterface-8   	 1000000	      1578 ns/op	     544 B/op	      11 allocs/op
+BenchmarkMemoryCacheWithStruct-8         	 1000000	      1633 ns/op	     688 B/op	      12 allocs/op
+BenchmarkFileCacheWithInt-8              	   10000	    104903 ns/op	    2951 B/op	      35 allocs/op
+BenchmarkFileCacheWithString-8           	   10000	    106808 ns/op	    2967 B/op	      36 allocs/op
+BenchmarkFileCacheWithMapInterface-8     	   10000	    110836 ns/op	    4996 B/op	      59 allocs/op
+BenchmarkFileCacheWithStruct-8           	   10000	    115313 ns/op	    5909 B/op	      64 allocs/op
+BenchmarkRedisCacheWithInt-8             	    3000	    567683 ns/op	    1466 B/op	      43 allocs/op
+BenchmarkRedisCacheWithString-8          	    3000	    586679 ns/op	    1473 B/op	      44 allocs/op
+BenchmarkRedisCacheWithMapInterface-8    	    3000	    703180 ns/op	    3800 B/op	      68 allocs/op
+BenchmarkRedisCacheWithStruct-8          	    3000	    927277 ns/op	    4793 B/op	      74 allocs/op
+BenchmarkSqlCacheWithInt-8               	    1000	   1725970 ns/op	    5187 B/op	     144 allocs/op
+BenchmarkSqlCacheWithString-8            	    1000	   1898432 ns/op	    5040 B/op	     135 allocs/op
+BenchmarkSqlCacheWithMapInterface-8      	    1000	   1758712 ns/op	   11042 B/op	     373 allocs/op
+BenchmarkSqlCacheWithStruct-8            	    1000	   1949790 ns/op	   13998 B/op	     452 allocs/op
 ```
 
 ## Howto
