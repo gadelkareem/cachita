@@ -4,55 +4,52 @@ import (
 	"fmt"
 	"time"
 
-	rds "github.com/go-redis/redis"
+	"github.com/mediocregopher/radix"
 	"github.com/vmihailenco/msgpack"
 )
 
 var rCache Cache
 
 type redis struct {
-	c      *rds.Client
+	pool   *radix.Pool
 	prefix string
 	ttl    time.Duration
 }
 
 func Redis(addr string) (Cache, error) {
 	if rCache == nil {
-		c := rds.NewClient(&rds.Options{
-			Addr:            addr,
-			MaxRetries:      10,
-			MaxRetryBackoff: 5 * time.Second,
-			ReadTimeout:     10 * time.Second,
-			WriteTimeout:    10 * time.Second,
-			PoolTimeout:     10 * time.Second,
-			PoolSize:        10,
-		})
-		_, err := c.Ping().Result()
+		var err error
+		rCache, err = NewRedisCache(24*time.Hour, 10, "cachita", addr)
 		if err != nil {
 			return nil, err
 		}
-		rCache = NewRedisCache(24*time.Hour, c, "cachita")
 	}
 	return rCache, nil
 }
 
-func NewRedisCache(ttl time.Duration, c *rds.Client, prefix string) (Cache) {
+func NewRedisCache(ttl time.Duration, poolSize int, prefix, addr string) (Cache, error) {
+	pool, err := radix.NewPool("tcp", addr, poolSize)
+	if err != nil {
+		return nil, err
+	}
+
 	rc := &redis{
-		c:      c,
+		pool:   pool,
 		prefix: prefix,
 		ttl:    ttl,
 	}
 
-	return rc
+	return rc, nil
 }
 
 func (rc *redis) Get(key string, i interface{}) error {
-	data, err := rc.c.Get(rc.k(key)).Bytes()
+	var data []byte
+	err := rc.pool.Do(radix.FlatCmd(&data, "GET", rc.k(key)))
 	if err != nil {
-		if err == rds.Nil {
-			return ErrNotFound
-		}
 		return err
+	}
+	if data == nil {
+		return ErrNotFound
 	}
 	return msgpack.Unmarshal(data, i)
 }
@@ -62,16 +59,17 @@ func (rc *redis) Put(key string, i interface{}, ttl time.Duration) error {
 	if err != nil {
 		return err
 	}
-	return rc.c.Set(rc.k(key), data, calculateTtl(ttl, rc.ttl)).Err()
+	return rc.pool.Do(radix.FlatCmd(nil, "SETEX", rc.k(key), calculateTtl(ttl, rc.ttl).Seconds(), data))
 }
 
 func (rc *redis) Invalidate(key string) error {
-	rc.c.Del(rc.k(key))
-	return nil
+	return rc.pool.Do(radix.FlatCmd(nil, "DEL", rc.k(key)))
 }
 
 func (rc *redis) Exists(key string) bool {
-	return rc.c.Exists(rc.k(key)).Val() != 0
+	var b bool
+	rc.pool.Do(radix.FlatCmd(&b, "EXISTS", rc.k(key)))
+	return b
 }
 
 func (rc *redis) k(key string) string {
