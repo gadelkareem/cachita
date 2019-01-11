@@ -9,7 +9,6 @@ import (
 )
 
 func TestNewSqlCache(t *testing.T) {
-	t.Parallel()
 	newCache(sc(t), t)
 }
 
