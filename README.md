@@ -1,5 +1,5 @@
 # Cachita
-Cachita is a golang file, memory, SQL, Redis cache library 
+Cachita is a Golang file, memory, SQL, Redis cache library 
 
 [![Build Status](https://travis-ci.org/gadelkareem/cachita.svg)](https://travis-ci.org/gadelkareem/cachita)
 [![GoDoc](https://godoc.org/github.com/gadelkareem/cachita?status.svg)](https://godoc.org/github.com/gadelkareem/cachita)

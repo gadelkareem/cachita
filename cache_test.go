@@ -1,7 +1,9 @@
 package cachita
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"math/rand"
 	"testing"
 	"time"
 )
@@ -31,29 +33,48 @@ func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 }
 
 func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t assert.TestingT, s, d interface{})) {
+	k = fmt.Sprintf("%s%d", k, rand.Int())
+	disableAssert := false
+	if _, ok := t.(*testing.B); ok {
+		disableAssert = true
+	}
+
 	err := c.Put(k, s, 0)
 	isError(err, t)
-
-	assert.True(t, c.Exists(k))
+	if !disableAssert {
+		assert.True(t, c.Exists(k))
+	}
 
 	err = c.Get(k, d)
 	isError(err, t)
 
-	if len(f) > 0 {
-		f[0](t, s, d)
-	} else {
-		assert.Equal(t, s, d)
+	if !disableAssert {
+		if len(f) > 0 {
+			f[0](t, s, d)
+		} else {
+			assert.Equal(t, s, d)
+		}
 	}
 
 	err = c.Invalidate(k)
 	isError(err, t)
-	assert.False(t, c.Exists(k))
+	if !disableAssert {
+		assert.False(t, c.Exists(k))
+	}
 }
 
-func benchmarkCacheWithInt(c Cache, b *testing.B) {
+func benchmark(c Cache, b *testing.B, f func(c Cache, k string, t assert.TestingT)) {
 	for n := 0; n < b.N; n++ {
-		cacheWithInt(c, string(b.N), b)
+		f(c, string(b.N), b)
 	}
+}
+
+func benchmarkParallel(c Cache, b *testing.B, f func(c Cache, k string, t assert.TestingT)) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			f(c, string(b.N), b)
+		}
+	})
 }
 
 func cacheWithInt(c Cache, k string, t assert.TestingT) {
@@ -62,22 +83,10 @@ func cacheWithInt(c Cache, k string, t assert.TestingT) {
 	test(c, k, &s, &d, t)
 }
 
-func benchmarkCacheWithString(c Cache, b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		cacheWithString(c, string(b.N), b)
-	}
-}
-
 func cacheWithString(c Cache, k string, t assert.TestingT) {
 	s := "test"
 	var d string
 	test(c, k, &s, &d, t)
-}
-
-func benchmarkCacheWithMapInterface(c Cache, b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		cacheWithMapInterface(c, string(b.N), b)
-	}
 }
 
 func cacheWithMapInterface(c Cache, k string, t assert.TestingT) {
@@ -91,12 +100,6 @@ func cacheWithMapInterface(c Cache, k string, t assert.TestingT) {
 	}
 	var d map[string]interface{}
 	test(c, k, &s, &d, t, compareMap)
-}
-
-func benchmarkCacheWithStruct(c Cache, b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		cacheWithStruct(c, string(b.N), b)
-	}
 }
 
 func cacheWithStruct(c Cache, k string, t assert.TestingT) {

@@ -28,7 +28,7 @@ func TestFileCacheWithInt(t *testing.T) {
 	cacheWithInt(fc(t), "x", t)
 }
 func BenchmarkFileCacheWithInt(b *testing.B) {
-	benchmarkCacheWithInt(fc(b), b)
+	benchmark(rc(b), b, cacheWithInt)
 }
 
 func TestFileCacheWithString(t *testing.T) {
@@ -37,7 +37,7 @@ func TestFileCacheWithString(t *testing.T) {
 }
 
 func BenchmarkFileCacheWithString(b *testing.B) {
-	benchmarkCacheWithString(fc(b), b)
+	benchmark(rc(b), b, cacheWithString)
 }
 
 func TestFileCacheWithMapInterface(t *testing.T) {
@@ -46,7 +46,7 @@ func TestFileCacheWithMapInterface(t *testing.T) {
 }
 
 func BenchmarkFileCacheWithMapInterface(b *testing.B) {
-	benchmarkCacheWithMapInterface(fc(b), b)
+	benchmark(rc(b), b, cacheWithMapInterface)
 }
 
 func TestFileCacheWithStruct(t *testing.T) {
@@ -55,7 +55,7 @@ func TestFileCacheWithStruct(t *testing.T) {
 }
 
 func BenchmarkFileCacheWithStruct(b *testing.B) {
-	benchmarkCacheWithStruct(fc(b), b)
+	benchmark(rc(b), b, cacheWithStruct)
 }
 
 func TestIndexFileCreated(t *testing.T) {

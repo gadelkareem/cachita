@@ -27,7 +27,7 @@ func TestSqlCacheWithInt(t *testing.T) {
 	cacheWithInt(sc(t), "x", t)
 }
 func BenchmarkSqlCacheWithInt(b *testing.B) {
-	benchmarkCacheWithInt(sc(b), b)
+	benchmarkParallel(rc(b), b, cacheWithInt)
 }
 
 func TestSqlCacheWithString(t *testing.T) {
@@ -36,7 +36,7 @@ func TestSqlCacheWithString(t *testing.T) {
 }
 
 func BenchmarkSqlCacheWithString(b *testing.B) {
-	benchmarkCacheWithString(sc(b), b)
+	benchmarkParallel(rc(b), b, cacheWithString)
 }
 
 func TestSqlCacheWithMapInterface(t *testing.T) {
@@ -45,7 +45,7 @@ func TestSqlCacheWithMapInterface(t *testing.T) {
 }
 
 func BenchmarkSqlCacheWithMapInterface(b *testing.B) {
-	benchmarkCacheWithMapInterface(sc(b), b)
+	benchmarkParallel(rc(b), b, cacheWithMapInterface)
 }
 
 func TestSqlCacheWithStruct(t *testing.T) {
@@ -54,7 +54,7 @@ func TestSqlCacheWithStruct(t *testing.T) {
 }
 
 func BenchmarkSqlCacheWithStruct(b *testing.B) {
-	benchmarkCacheWithStruct(sc(b), b)
+	benchmarkParallel(rc(b), b, cacheWithStruct)
 }
 
 func sc(t assert.TestingT) (c Cache) {

@@ -18,7 +18,7 @@ func TestMemoryCacheWithInt(t *testing.T) {
 }
 
 func BenchmarkMemoryCacheWithInt(b *testing.B) {
-	benchmarkCacheWithInt(Memory(), b)
+	benchmark(rc(b), b, cacheWithInt)
 }
 
 func TestMemoryCacheWithString(t *testing.T) {
@@ -26,7 +26,7 @@ func TestMemoryCacheWithString(t *testing.T) {
 }
 
 func BenchmarkMemoryCacheWithString(b *testing.B) {
-	benchmarkCacheWithString(Memory(), b)
+	benchmark(rc(b), b, cacheWithString)
 }
 
 func TestMemoryCacheWithMapInterface(t *testing.T) {
@@ -34,7 +34,7 @@ func TestMemoryCacheWithMapInterface(t *testing.T) {
 }
 
 func BenchmarkMemoryCacheWithMapInterface(b *testing.B) {
-	benchmarkCacheWithMapInterface(Memory(), b)
+	benchmark(rc(b), b, cacheWithMapInterface)
 }
 
 func TestMemoryCacheWithStruct(t *testing.T) {
@@ -42,5 +42,5 @@ func TestMemoryCacheWithStruct(t *testing.T) {
 }
 
 func BenchmarkMemoryCacheWithStruct(b *testing.B) {
-	benchmarkCacheWithStruct(Memory(), b)
+	benchmark(rc(b), b, cacheWithStruct)
 }
