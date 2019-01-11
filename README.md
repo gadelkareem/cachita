@@ -7,7 +7,7 @@ Cachita is a golang file, memory, SQL, Redis cache library
 - Simple caching with auto type assertion included.
 - In memory file cache index to avoid unneeded I/O.
 - [Msgpack](https://msgpack.org/index.html) based binary serialization using [msgpack](https://github.com/vmihailenco/msgpack) library for file caching.
-- [go-redis](https://github.com/go-redis/redis) Redis client.
+- [radix](https://github.com/mediocregopher/radix) Redis client.
 
 
 API docs: https://godoc.org/github.com/gadelkareem/cachita.
