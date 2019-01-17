@@ -50,3 +50,12 @@ func TestMemoryCacheWithStruct(t *testing.T) {
 func BenchmarkMemoryCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(Memory(), b)
 }
+
+func TestMemory_Incr(t *testing.T) {
+	t.Parallel()
+	cacheIncr(Memory(), t)
+}
+
+func BenchmarkMemory_Incr(b *testing.B) {
+	benchmarkCacheIncr(Memory(), b)
+}

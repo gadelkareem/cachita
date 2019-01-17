@@ -74,12 +74,12 @@ func testIncr(c Cache, k string, t assert.TestingT) {
 		assert.True(t, c.Exists(k))
 	}
 
-	var n int
+	var n int64
 	err = c.Get(k, &n)
 	isError(err, t)
 
 	if !disableAssert {
-		assert.Equal(t, 1, n)
+		assert.Equal(t, int64(1), n)
 	}
 
 	err = c.Incr(k, 0)
@@ -88,7 +88,7 @@ func testIncr(c Cache, k string, t assert.TestingT) {
 	isError(err, t)
 
 	if !disableAssert {
-		assert.Equal(t, 2, n)
+		assert.Equal(t, int64(2), n)
 	}
 
 	err = c.Invalidate(k)

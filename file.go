@@ -87,7 +87,7 @@ func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
 func (c *file) Incr(key string, ttl time.Duration) error {
 	var n int64
 	err := c.Get(key, &n)
-	if err != nil {
+	if err != nil && err != ErrNotFound && err != ErrExpired {
 		return err
 	}
 	n++

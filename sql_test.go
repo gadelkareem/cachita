@@ -56,6 +56,15 @@ func BenchmarkSqlCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(sc(b), b)
 }
 
+func TestSql_Incr(t *testing.T) {
+	t.Parallel()
+	cacheIncr(sc(t), t)
+}
+
+func BenchmarkSql_Incr(b *testing.B) {
+	benchmarkCacheIncr(sc(b), b)
+}
+
 func sc(t assert.TestingT) (c Cache) {
 	c, err := Sql("postgres", "postgres://postgres@localhost/test?sslmode=disable")
 	isError(err, t)

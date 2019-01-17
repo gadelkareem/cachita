@@ -58,6 +58,15 @@ func BenchmarkFileCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(fc(b), b)
 }
 
+func TestFile_Incr(t *testing.T) {
+	t.Parallel()
+	cacheIncr(fc(t), t)
+}
+
+func BenchmarkFile_Incr(b *testing.B) {
+	benchmarkCacheIncr(fc(b), b)
+}
+
 func TestIndexFileCreated(t *testing.T) {
 	t.Parallel()
 	path, err := filepath.Abs(filepath.Dir(os.Args[0]))

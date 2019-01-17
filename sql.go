@@ -112,13 +112,13 @@ func (c *sqlCache) Incr(key string, ttl time.Duration) error {
 		return err
 	}
 
-	if r.Value != nil {
+	if r.Value != nil && time.Unix(r.ExpiredAt, 0).After(time.Now()) {
 		err = msgpack.Unmarshal(r.Value, &n)
 		if err != nil {
 			return err
 		}
-		n++
 	}
+	n++
 	data, err := msgpack.Marshal(n)
 	if err != nil {
 		return err
