@@ -105,6 +105,36 @@ func (c *sqlCache) Put(key string, i interface{}, ttl time.Duration) error {
 	return err
 }
 
+func (c *sqlCache) Incr(key string, ttl time.Duration) error {
+	var n int64
+	r, err := c.row(Id(key))
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
+	if r.Value != nil {
+		err = msgpack.Unmarshal(r.Value, &n)
+		if err != nil {
+			return err
+		}
+		n++
+	}
+	data, err := msgpack.Marshal(n)
+	if err != nil {
+		return err
+	}
+
+	var query string
+	if r.Value == nil {
+		query = "INSERT INTO " + c.tableName + " (data, id, expired_at) VALUES(" + c.placeholder(1) + ", " + c.placeholder(2) + ", " + c.placeholder(3) + ")"
+	} else {
+		query = "UPDATE " + c.tableName + " SET data = " + c.placeholder(1) + ", expired_at= " + c.placeholder(3) + " WHERE id = " + c.placeholder(2)
+	}
+
+	_, err = c.db.Exec(query, data, r.Id, expiredAt(ttl, c.ttl).Unix())
+	return err
+}
+
 func (c *sqlCache) Invalidate(key string) error {
 	_, err := c.db.Exec("DELETE FROM "+c.tableName+" WHERE id = "+c.placeholder(1), Id(key))
 	return err

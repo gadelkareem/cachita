@@ -25,7 +25,7 @@ func TestFileCacheExpires(t *testing.T) {
 
 func TestFileCacheWithInt(t *testing.T) {
 	t.Parallel()
-	cacheWithInt(fc(t), "x", t)
+	cacheWithInt(fc(t), t)
 }
 func BenchmarkFileCacheWithInt(b *testing.B) {
 	benchmarkCacheWithInt(fc(b), b)
@@ -33,7 +33,7 @@ func BenchmarkFileCacheWithInt(b *testing.B) {
 
 func TestFileCacheWithString(t *testing.T) {
 	t.Parallel()
-	cacheWithString(fc(t), "x1", t)
+	cacheWithString(fc(t), t)
 }
 
 func BenchmarkFileCacheWithString(b *testing.B) {
@@ -42,7 +42,7 @@ func BenchmarkFileCacheWithString(b *testing.B) {
 
 func TestFileCacheWithMapInterface(t *testing.T) {
 	t.Parallel()
-	cacheWithMapInterface(fc(t), "x2", t)
+	cacheWithMapInterface(fc(t), t)
 }
 
 func BenchmarkFileCacheWithMapInterface(b *testing.B) {
@@ -51,7 +51,7 @@ func BenchmarkFileCacheWithMapInterface(b *testing.B) {
 
 func TestFileCacheWithStruct(t *testing.T) {
 	t.Parallel()
-	cacheWithStruct(fc(t), "x3", t)
+	cacheWithStruct(fc(t), t)
 }
 
 func BenchmarkFileCacheWithStruct(b *testing.B) {

@@ -54,6 +54,16 @@ func (c *memory) Put(key string, i interface{}, ttl time.Duration) error {
 	return nil
 }
 
+func (c *memory) Incr(key string, ttl time.Duration) error {
+	var n int64
+	err := c.Get(key, &n)
+	if err != nil {
+		return err
+	}
+	n++
+	return c.Put(key, n, ttl)
+}
+
 func (c *memory) Invalidate(key string) error {
 	c.recordsMu.Lock()
 	defer c.recordsMu.Unlock()

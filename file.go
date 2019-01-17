@@ -77,10 +77,21 @@ func (c *file) Get(key string, i interface{}) error {
 	}
 	return readData(c.path(id), i)
 }
+
 func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
 	id := Id(key)
 	c.i.add(id, expiredAt(ttl, c.ttl))
 	return writeData(c.path(id), i)
+}
+
+func (c *file) Incr(key string, ttl time.Duration) error {
+	var n int64
+	err := c.Get(key, &n)
+	if err != nil {
+		return err
+	}
+	n++
+	return c.Put(key, n, ttl)
 }
 
 func (c *file) Invalidate(key string) error {

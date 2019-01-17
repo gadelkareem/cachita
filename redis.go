@@ -2,10 +2,10 @@ package cachita
 
 import (
 	"fmt"
+	"github.com/vmihailenco/msgpack"
 	"time"
 
 	"github.com/mediocregopher/radix"
-	"github.com/vmihailenco/msgpack"
 )
 
 var rCache Cache
@@ -33,45 +33,84 @@ func NewRedisCache(ttl time.Duration, poolSize int, prefix, addr string) (Cache,
 		return nil, err
 	}
 
-	rc := &redis{
+	c := &redis{
 		pool:   pool,
 		prefix: prefix,
 		ttl:    ttl,
 	}
 
-	return rc, nil
+	return c, nil
 }
 
-func (rc *redis) Get(key string, i interface{}) error {
+func (c *redis) Get(key string, i interface{}) error {
+	s := i
+	isInt := isInt(i)
 	var data []byte
-	err := rc.pool.Do(radix.FlatCmd(&data, "GET", rc.k(key)))
+	if !isInt {
+		s = &data
+	}
+	err := c.pool.Do(radix.FlatCmd(s, "GET", c.k(key)))
 	if err != nil {
 		return err
 	}
+
+	if isInt {
+		i = s
+		return nil
+	}
+
+	data = *s.(*[]byte)
 	if data == nil {
 		return ErrNotFound
 	}
 	return msgpack.Unmarshal(data, i)
 }
 
-func (rc *redis) Put(key string, i interface{}, ttl time.Duration) error {
-	data, err := msgpack.Marshal(i)
-	if err != nil {
-		return err
+func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
+	s := i
+	if !isInt(i) {
+		data, err := msgpack.Marshal(i)
+		if err != nil {
+			return err
+		}
+		s = &data
 	}
-	return rc.pool.Do(radix.FlatCmd(nil, "SETEX", rc.k(key), calculateTtl(ttl, rc.ttl).Seconds(), data))
+
+	return c.pool.Do(radix.FlatCmd(nil, "SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), s))
 }
 
-func (rc *redis) Invalidate(key string) error {
-	return rc.pool.Do(radix.FlatCmd(nil, "DEL", rc.k(key)))
+func (c *redis) Incr(key string, ttl time.Duration) error {
+	return c.pool.Do(radix.FlatCmd(nil, "INCR", c.k(key))) //, calculateTtl(ttl, c.ttl).Seconds()
 }
 
-func (rc *redis) Exists(key string) bool {
+func (c *redis) Invalidate(key string) error {
+	return c.pool.Do(radix.FlatCmd(nil, "DEL", c.k(key)))
+}
+
+func (c *redis) Exists(key string) bool {
 	var b bool
-	rc.pool.Do(radix.FlatCmd(&b, "EXISTS", rc.k(key)))
+	c.pool.Do(radix.FlatCmd(&b, "EXISTS", c.k(key)))
 	return b
 }
 
-func (rc *redis) k(key string) string {
-	return fmt.Sprintf("%s:%s", rc.prefix, key)
+func (c *redis) k(key string) string {
+	return fmt.Sprintf("%s:%s", c.prefix, key)
+}
+
+func isInt(i interface{}) bool {
+	switch i.(type) {
+	case *int:
+	case *int8:
+	case *int16:
+	case *int32:
+	case *int64:
+	case int:
+	case int8:
+	case int16:
+	case int32:
+	case int64:
+	default:
+		return false
+	}
+	return true
 }

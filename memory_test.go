@@ -17,7 +17,7 @@ func TestMemoryCacheExpires(t *testing.T) {
 
 func TestMemoryCacheWithInt(t *testing.T) {
 	t.Parallel()
-	cacheWithInt(Memory(), "x", t)
+	cacheWithInt(Memory(), t)
 }
 
 func BenchmarkMemoryCacheWithInt(b *testing.B) {
@@ -26,7 +26,7 @@ func BenchmarkMemoryCacheWithInt(b *testing.B) {
 
 func TestMemoryCacheWithString(t *testing.T) {
 	t.Parallel()
-	cacheWithString(Memory(), "x1", t)
+	cacheWithString(Memory(), t)
 }
 
 func BenchmarkMemoryCacheWithString(b *testing.B) {
@@ -35,7 +35,7 @@ func BenchmarkMemoryCacheWithString(b *testing.B) {
 
 func TestMemoryCacheWithMapInterface(t *testing.T) {
 	t.Parallel()
-	cacheWithMapInterface(Memory(), "x2", t)
+	cacheWithMapInterface(Memory(), t)
 }
 
 func BenchmarkMemoryCacheWithMapInterface(b *testing.B) {
@@ -44,7 +44,7 @@ func BenchmarkMemoryCacheWithMapInterface(b *testing.B) {
 
 func TestMemoryCacheWithStruct(t *testing.T) {
 	t.Parallel()
-	cacheWithStruct(Memory(), "x3", t)
+	cacheWithStruct(Memory(), t)
 }
 
 func BenchmarkMemoryCacheWithStruct(b *testing.B) {

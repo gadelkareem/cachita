@@ -14,6 +14,7 @@ type (
 	Cache interface {
 		Get(key string, i interface{}) error
 		Put(key string, i interface{}, ttl time.Duration) error // ttl 0:default ttl, -1: keep forever
+		Incr(key string, ttl time.Duration) error
 		Exists(key string) bool
 		Invalidate(key string) error
 	}
@@ -76,6 +77,33 @@ func TypeAssert(source, target interface{}) (err error) {
 			}
 		}
 	}()
+
+	if directTypeAssert(source, target) {
+		return nil
+	}
+
+	v := reflect.ValueOf(target)
+	if !v.IsValid() {
+		return errors.New("cachita: target is nil")
+	}
+	if v.Kind() != reflect.Ptr {
+		return fmt.Errorf("cachita: target is not a settable %T", target)
+	}
+	v = v.Elem()
+	if !v.IsValid() {
+		return fmt.Errorf("cachita: target is not a settable %T", target)
+	}
+
+	s := reflect.ValueOf(source)
+	if !s.IsValid() {
+		return errors.New("cachita: source is not valid")
+	}
+	s = deReference(s)
+	v.Set(s)
+	return nil
+}
+
+func directTypeAssert(source, target interface{}) bool {
 	var ok bool
 	switch v := target.(type) {
 	case *string:
@@ -119,29 +147,7 @@ func TypeAssert(source, target interface{}) (err error) {
 	case *map[string]interface{}:
 		*v, ok = source.(map[string]interface{})
 	}
-	if ok {
-		return nil
-	}
-
-	v := reflect.ValueOf(target)
-	if !v.IsValid() {
-		return errors.New("cachita: target is nil")
-	}
-	if v.Kind() != reflect.Ptr {
-		return fmt.Errorf("cachita: target is not a settable %T", target)
-	}
-	v = v.Elem()
-	if !v.IsValid() {
-		return fmt.Errorf("cachita: target is not a settable %T", target)
-	}
-
-	s := reflect.ValueOf(source)
-	if !s.IsValid() {
-		return errors.New("cachita: source is not valid")
-	}
-	s = deReference(s)
-	v.Set(s)
-	return nil
+	return ok
 }
 
 func deReference(v reflect.Value) reflect.Value {
