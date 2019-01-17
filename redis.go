@@ -80,7 +80,12 @@ func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
 }
 
 func (c *redis) Incr(key string, ttl time.Duration) error {
-	return c.pool.Do(radix.FlatCmd(nil, "INCR", c.k(key))) //, calculateTtl(ttl, c.ttl).Seconds()
+	k := c.k(key)
+	p := radix.Pipeline(
+		radix.FlatCmd(nil, "INCR", k),
+		radix.FlatCmd(nil, "EXPIRE", k, calculateTtl(ttl, c.ttl).Seconds()),
+	)
+	return c.pool.Do(p)
 }
 
 func (c *redis) Invalidate(key string) error {

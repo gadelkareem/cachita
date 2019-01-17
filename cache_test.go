@@ -25,7 +25,7 @@ func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 	assert.False(t, c.Exists(k))
 
 	err = c.Get(k, &d)
-	assert.Equal(t, err, ErrNotFound)
+	assert.Equal(t, ErrNotFound, err)
 	if err != ErrNotFound {
 		isError(err, t)
 	}
@@ -83,6 +83,8 @@ func testIncr(c Cache, k string, t assert.TestingT) {
 	}
 
 	err = c.Incr(k, 0)
+	isError(err, t)
+	err = c.Get(k, &n)
 	isError(err, t)
 
 	if !disableAssert {

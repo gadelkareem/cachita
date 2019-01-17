@@ -18,7 +18,7 @@ func TestRedisCacheExpires(t *testing.T) {
 
 func TestRedisCacheWithInt(t *testing.T) {
 	t.Parallel()
-	cacheWithInt(rc(t), "x", t)
+	cacheWithInt(rc(t), t)
 }
 func BenchmarkRedisCacheWithInt(b *testing.B) {
 	benchmarkCacheWithInt(rc(b), b)
@@ -26,7 +26,7 @@ func BenchmarkRedisCacheWithInt(b *testing.B) {
 
 func TestRedisCacheWithString(t *testing.T) {
 	t.Parallel()
-	cacheWithString(rc(t), "x1", t)
+	cacheWithString(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithString(b *testing.B) {
@@ -35,7 +35,7 @@ func BenchmarkRedisCacheWithString(b *testing.B) {
 
 func TestRedisCacheWithMapInterface(t *testing.T) {
 	t.Parallel()
-	cacheWithMapInterface(rc(t), "x2", t)
+	cacheWithMapInterface(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithMapInterface(b *testing.B) {
@@ -44,11 +44,20 @@ func BenchmarkRedisCacheWithMapInterface(b *testing.B) {
 
 func TestRedisCacheWithStruct(t *testing.T) {
 	t.Parallel()
-	cacheWithStruct(rc(t), "x3", t)
+	cacheWithStruct(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(rc(b), b)
+}
+
+func TestRedis_Incr(t *testing.T) {
+	t.Parallel()
+	cacheIncr(rc(t), t)
+}
+
+func BenchmarkRedis_Incr(b *testing.B) {
+	benchmarkCacheIncr(rc(b), b)
 }
 
 func rc(t assert.TestingT) (c Cache) {
