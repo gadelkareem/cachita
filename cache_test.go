@@ -68,23 +68,14 @@ func testIncr(c Cache, k string, t assert.TestingT) {
 	k = fmt.Sprintf("%s%d", k, rand.Int())
 	disableAssert := isBenchmark(t)
 
-	err := c.Incr(k, 0)
+	n, err := c.Incr(k, 0)
 	isError(err, t)
 	if !disableAssert {
 		assert.True(t, c.Exists(k))
-	}
-
-	var n int64
-	err = c.Get(k, &n)
-	isError(err, t)
-
-	if !disableAssert {
 		assert.Equal(t, int64(1), n)
 	}
 
-	err = c.Incr(k, 0)
-	isError(err, t)
-	err = c.Get(k, &n)
+	n, err = c.Incr(k, 0)
 	isError(err, t)
 
 	if !disableAssert {

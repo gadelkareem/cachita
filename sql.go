@@ -105,23 +105,23 @@ func (c *sqlCache) Put(key string, i interface{}, ttl time.Duration) error {
 	return err
 }
 
-func (c *sqlCache) Incr(key string, ttl time.Duration) error {
+func (c *sqlCache) Incr(key string, ttl time.Duration) (int64, error) {
 	var n int64
 	r, err := c.row(Id(key))
 	if err != nil && err != sql.ErrNoRows {
-		return err
+		return 0, err
 	}
 
 	if r.Value != nil && time.Unix(r.ExpiredAt, 0).After(time.Now()) {
 		err = msgpack.Unmarshal(r.Value, &n)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	}
 	n++
 	data, err := msgpack.Marshal(n)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	var query string
@@ -132,7 +132,7 @@ func (c *sqlCache) Incr(key string, ttl time.Duration) error {
 	}
 
 	_, err = c.db.Exec(query, data, r.Id, expiredAt(ttl, c.ttl).Unix())
-	return err
+	return n, err
 }
 
 func (c *sqlCache) Invalidate(key string) error {

@@ -78,16 +78,18 @@ func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
 	return c.pool.Do(radix.FlatCmd(nil, "SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), s))
 }
 
-func (c *redis) Incr(key string, ttl time.Duration) error {
+func (c *redis) Incr(key string, ttl time.Duration) (int64, error) {
 	k := c.k(key)
 	incr := radix.NewEvalScript(1, `
-		local c = redis.call("incr",KEYS[1])
-        if tonumber(c) == 1 then
+		local n = redis.call("incr",KEYS[1])
+        if tonumber(n) == 1 then
     		redis.call("expire",KEYS[1],ARGV[1])
 		end
+		return n
 `)
-	err := c.pool.Do(incr.Cmd(nil, k, fmt.Sprintf("%.0f", calculateTtl(ttl, c.ttl).Seconds())))
-	return err
+	var n int64
+	err := c.pool.Do(incr.Cmd(&n, k, fmt.Sprintf("%.0f", calculateTtl(ttl, c.ttl).Seconds())))
+	return n, err
 }
 
 func (c *redis) Invalidate(key string) error {

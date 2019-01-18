@@ -54,14 +54,15 @@ func (c *memory) Put(key string, i interface{}, ttl time.Duration) error {
 	return nil
 }
 
-func (c *memory) Incr(key string, ttl time.Duration) error {
+func (c *memory) Incr(key string, ttl time.Duration) (int64, error) {
 	var n int64
 	err := c.Get(key, &n)
 	if err != nil && err != ErrNotFound && err != ErrExpired {
-		return err
+		return 0, err
 	}
 	n++
-	return c.Put(key, n, ttl)
+	err = c.Put(key, n, ttl)
+	return n, err
 }
 
 func (c *memory) Invalidate(key string) error {
