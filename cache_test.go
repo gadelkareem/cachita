@@ -11,8 +11,7 @@ import (
 func newCache(c Cache, t *testing.T) {
 	var d string
 	s := "╭∩╮(Ο_Ο)╭∩╮"
-	k := "٩(̾●̮̮̃̾•̃̾)۶"
-	test(c, k, &s, &d, t)
+	test(c, "٩(̾●̮̮̃̾•̃̾)۶", &s, &d, t)
 }
 
 func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
@@ -26,7 +25,7 @@ func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 	assert.False(t, c.Exists(k))
 
 	err = c.Get(k, &d)
-	assert.Equal(t, err, ErrNotFound)
+	assert.Equal(t, ErrNotFound, err)
 	if err != ErrNotFound {
 		isError(err, t)
 	}
@@ -34,10 +33,7 @@ func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 
 func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t assert.TestingT, s, d interface{})) {
 	k = fmt.Sprintf("%s%d", k, rand.Int())
-	disableAssert := false
-	if _, ok := t.(*testing.B); ok {
-		disableAssert = true
-	}
+	disableAssert := isBenchmark(t)
 
 	err := c.Put(k, s, 0)
 	isError(err, t)
@@ -63,44 +59,82 @@ func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t a
 	}
 
 }
+func isBenchmark(t assert.TestingT) bool {
+	_, ok := t.(*testing.B)
+	return ok
+}
+
+func testIncr(c Cache, k string, t assert.TestingT) {
+	k = fmt.Sprintf("%s%d", k, rand.Int())
+	disableAssert := isBenchmark(t)
+
+	err := c.Incr(k, 0)
+	isError(err, t)
+	if !disableAssert {
+		assert.True(t, c.Exists(k))
+	}
+
+	var n int64
+	err = c.Get(k, &n)
+	isError(err, t)
+
+	if !disableAssert {
+		assert.Equal(t, int64(1), n)
+	}
+
+	err = c.Incr(k, 0)
+	isError(err, t)
+	err = c.Get(k, &n)
+	isError(err, t)
+
+	if !disableAssert {
+		assert.Equal(t, int64(2), n)
+	}
+
+	err = c.Invalidate(k)
+	isError(err, t)
+	if !disableAssert {
+		assert.False(t, c.Exists(k))
+	}
+}
 
 func benchmarkCacheWithInt(c Cache, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			cacheWithInt(c, string(b.N), b)
+			cacheWithInt(c, b)
 		}
 	})
 }
 
-func cacheWithInt(c Cache, k string, t assert.TestingT) {
-	s := 10000
-	var d int
-	test(c, k, &s, &d, t)
+func cacheWithInt(c Cache, t assert.TestingT) {
+	var s int64 = 10000
+	var d int64
+	test(c, "k", &s, &d, t)
 }
 
 func benchmarkCacheWithString(c Cache, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			cacheWithString(c, string(b.N), b)
+			cacheWithString(c, b)
 		}
 	})
 }
 
-func cacheWithString(c Cache, k string, t assert.TestingT) {
+func cacheWithString(c Cache, t assert.TestingT) {
 	s := "test"
 	var d string
-	test(c, k, &s, &d, t)
+	test(c, "k", &s, &d, t)
 }
 
 func benchmarkCacheWithMapInterface(c Cache, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			cacheWithMapInterface(c, string(b.N), b)
+			cacheWithMapInterface(c, b)
 		}
 	})
 }
 
-func cacheWithMapInterface(c Cache, k string, t assert.TestingT) {
+func cacheWithMapInterface(c Cache, t assert.TestingT) {
 	s := map[string]interface{}{
 		"Ƹ̵̡Ӝ̵̨̄Ʒ": 1,
 		"ô¿ô":      "┌∩┐(◣_◢)┌∩┐",
@@ -110,18 +144,18 @@ func cacheWithMapInterface(c Cache, k string, t assert.TestingT) {
 		},
 	}
 	var d map[string]interface{}
-	test(c, k, &s, &d, t, compareMap)
+	test(c, "k", &s, &d, t, compareMap)
 }
 
 func benchmarkCacheWithStruct(c Cache, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			cacheWithStruct(c, string(b.N), b)
+			cacheWithStruct(c, b)
 		}
 	})
 }
 
-func cacheWithStruct(c Cache, k string, t assert.TestingT) {
+func cacheWithStruct(c Cache, t assert.TestingT) {
 	type str struct {
 		A int
 		B string
@@ -144,13 +178,25 @@ func cacheWithStruct(c Cache, k string, t assert.TestingT) {
 		},
 	}
 	var d str
-	test(c, k, &s, &d, t, func(t assert.TestingT, s1, d1 interface{}) {
+	test(c, "k", &s, &d, t, func(t assert.TestingT, s1, d1 interface{}) {
 		s := s1.(*str)
 		d := d1.(*str)
 		assert.Equal(t, s.A, d.A)
 		assert.Equal(t, s.B, d.B)
 		assert.Equal(t, s.C, d.C)
 		compareMap(t, &s.D, &d.D)
+	})
+}
+
+func cacheIncr(c Cache, t assert.TestingT) {
+	testIncr(c, "x", t)
+}
+
+func benchmarkCacheIncr(c Cache, b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			cacheIncr(c, b)
+		}
 	})
 }
 

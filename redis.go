@@ -46,34 +46,77 @@ func NewRedisCache(ttl time.Duration, c *rds.Client, prefix string) (Cache) {
 	return rc
 }
 
-func (rc *redis) Get(key string, i interface{}) error {
-	data, err := rc.c.Get(rc.k(key)).Bytes()
+func (c *redis) Get(key string, i interface{}) error {
+	isInt := isInt(i)
+	var err error
+	if isInt {
+		i, err = c.c.Get(c.k(key)).Int64()
+		if err != nil {
+			if err == rds.Nil{
+				return ErrNotFound
+			}
+			return err
+		}
+
+		return nil
+	}
+	data, err := c.c.Get(c.k(key)).Bytes()
 	if err != nil {
-		if err == rds.Nil {
+		if err == rds.Nil{
 			return ErrNotFound
 		}
 		return err
 	}
+	if data == nil {
+		return ErrNotFound
+	}
 	return msgpack.Unmarshal(data, i)
 }
 
-func (rc *redis) Put(key string, i interface{}, ttl time.Duration) error {
+func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
 	data, err := msgpack.Marshal(i)
 	if err != nil {
 		return err
 	}
-	return rc.c.Set(rc.k(key), data, calculateTtl(ttl, rc.ttl)).Err()
+	return c.c.Set(c.k(key), data, calculateTtl(ttl, c.ttl)).Err()
 }
 
-func (rc *redis) Invalidate(key string) error {
-	rc.c.Del(rc.k(key))
-	return nil
+func (c *redis) Incr(key string, ttl time.Duration) error {
+	k := c.k(key)
+	pipe := c.c.Pipeline()
+	pipe.Incr(k)
+	pipe.Expire(k, calculateTtl(ttl, c.ttl))
+	_, err := pipe.Exec()
+	return err
 }
 
-func (rc *redis) Exists(key string) bool {
-	return rc.c.Exists(rc.k(key)).Val() != 0
+func (c *redis) Invalidate(key string) error {
+	_, err := c.c.Del(c.k(key)).Result()
+	return err
 }
 
-func (rc *redis) k(key string) string {
-	return fmt.Sprintf("%s:%s", rc.prefix, key)
+func (c *redis) Exists(key string) bool {
+	return c.c.Exists(c.k(key)).Val() != 0
+}
+
+func (c *redis) k(key string) string {
+	return fmt.Sprintf("%s:%s", c.prefix, key)
+}
+
+func isInt(i interface{}) bool {
+	switch i.(type) {
+	case *int:
+	case *int8:
+	case *int16:
+	case *int32:
+	case *int64:
+	case int:
+	case int8:
+	case int16:
+	case int32:
+	case int64:
+	default:
+		return false
+	}
+	return true
 }
