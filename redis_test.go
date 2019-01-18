@@ -51,14 +51,14 @@ func BenchmarkRedisCacheWithStruct(b *testing.B) {
 	benchmarkCacheWithStruct(rc(b), b)
 }
 
-func TestRedis_Incr(t *testing.T) {
-	t.Parallel()
-	cacheIncr(rc(t), t)
-}
-
-func BenchmarkRedis_Incr(b *testing.B) {
-	benchmarkCacheIncr(rc(b), b)
-}
+//func TestRedis_Incr(t *testing.T) {
+//	t.Parallel()
+//	cacheIncr(rc(t), t)
+//}
+//
+//func BenchmarkRedis_Incr(b *testing.B) {
+//	benchmarkCacheIncr(rc(b), b)
+//}
 
 func rc(t assert.TestingT) (c Cache) {
 	c, err := Redis("127.0.0.1:6379")
