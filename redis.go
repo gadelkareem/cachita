@@ -1,23 +1,19 @@
 package cachita
 
 import (
-	"context"
 	"fmt"
 	"github.com/vmihailenco/msgpack"
 	"time"
 
-	rds "github.com/joomcode/redispipe/redis"
-	"github.com/joomcode/redispipe/redisconn"
+	rds "github.com/gomodule/redigo/redis"
 )
 
 var rCache Cache
 
 type redis struct {
-	SingleRedis func(ctx context.Context) (rds.Sender, error)
-	pool        rds.SyncCtx
-	ctx         context.Context
-	prefix      string
-	ttl         time.Duration
+	pool   *rds.Pool
+	prefix string
+	ttl    time.Duration
 }
 
 func Redis(addr string) (Cache, error) {
@@ -32,21 +28,27 @@ func Redis(addr string) (Cache, error) {
 }
 
 func NewRedisCache(ttl time.Duration, poolSize int, prefix, addr string) (Cache, error) {
-	ctx := context.Background()
-	SingleRedis := func(ctx context.Context) (rds.Sender, error) {
-		opts := redisconn.Opts{
-			DB: 1,
-			Logger:   redisconn.NoopLogger{},
-		}
-		conn, err := redisconn.Connect(ctx, addr, opts)
-		return conn, err
+	pool := &rds.Pool{
+
+		IdleTimeout: 240 * time.Second,
+		MaxIdle:     poolSize,
+		MaxActive:   poolSize,
+		Dial: func() (rds.Conn, error) {
+			c, err := rds.Dial("tcp", addr)
+			if err != nil {
+				return nil, err
+			}
+			return c, err
+		},
+
+		TestOnBorrow: func(c rds.Conn, t time.Time) error {
+			_, err := c.Do("PING")
+			return err
+		},
 	}
 
-
 	c := &redis{
-		SingleRedis: SingleRedis,
-		//pool:   sync,
-		ctx:    ctx,
+		pool:   pool,
 		prefix: prefix,
 		ttl:    ttl,
 	}
@@ -55,15 +57,9 @@ func NewRedisCache(ttl time.Duration, poolSize int, prefix, addr string) (Cache,
 }
 
 func (c *redis) Get(key string, i interface{}) error {
-	pool, err := c.SingleRedis(c.ctx)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-	sync := rds.SyncCtx{pool}
-
-	s := sync.Do(c.ctx, "GET", c.k(key))
-	err = rds.AsError(s)
+	conn := c.pool.Get()
+	defer conn.Close()
+	s, err := conn.Do("GET", c.k(key))
 	if err != nil {
 		return err
 	}
@@ -78,60 +74,46 @@ func (c *redis) Get(key string, i interface{}) error {
 }
 
 func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
-	pool, err := c.SingleRedis(c.ctx)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-	sync := rds.SyncCtx{pool}
+	conn := c.pool.Get()
+	defer conn.Close()
 	data, err := msgpack.Marshal(i)
 	if err != nil {
 		return err
 	}
 
-	res := sync.Do(c.ctx, "SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), data)
-	return rds.AsError(res)
+	_, err = conn.Do("SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), data)
+	return err
 
 }
 
 func (c *redis) Incr(key string, ttl time.Duration) error {
-	k := c.k(key)
-	pool, err := c.SingleRedis(c.ctx)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-	sync := rds.SyncCtx{pool}
-	_, err = sync.SendTransaction(c.ctx, []rds.Request{
-		rds.Req("INCR", k),
-		rds.Req("EXPIRE", k, calculateTtl(ttl, c.ttl).Seconds()),
-	})
+	//k := c.k(key)
+	//pool, err := c.SingleRedis(c.ctx)
+	//if err != nil {
+	//	return err
+	//}
+	//defer pool.Close()
+	//sync := rds.SyncCtx{pool}
+	//_, err = sync.SendTransaction(c.ctx, []rds.Request{
+	//	rds.Req("INCR", k),
+	//	rds.Req("EXPIRE", k, calculateTtl(ttl, c.ttl).Seconds()),
+	//})
 
-	return err
+	return nil
 }
 
 func (c *redis) Invalidate(key string) error {
-	pool, err := c.SingleRedis(c.ctx)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-	sync := rds.SyncCtx{pool}
-	return rds.AsError(sync.Do(c.ctx, "DEL", c.k(key)))
+	conn := c.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("DEL", c.k(key))
+	return err
 }
 
 func (c *redis) Exists(key string) bool {
-	pool, err := c.SingleRedis(c.ctx)
-	if err != nil {
-		return false
-	}
-	defer pool.Close()
-	sync := rds.SyncCtx{pool}
-	res := sync.Do(c.ctx, "EXISTS", c.k(key))
-	if rds.AsError(res) != nil {
-		return false
-	}
-	return res != nil && res != int64(0)
+	conn := c.pool.Get()
+	defer conn.Close()
+	b, _ := rds.Bool(conn.Do("EXISTS", c.k(key)))
+	return b
 }
 
 func (c *redis) k(key string) string {
