@@ -43,23 +43,11 @@ func NewRedisCache(ttl time.Duration, poolSize int, prefix, addr string) (Cache,
 }
 
 func (c *redis) Get(key string, i interface{}) error {
-	s := i
-	isInt := isInt(i)
 	var data []byte
-	if !isInt {
-		s = &data
-	}
-	err := c.pool.Do(radix.FlatCmd(s, "GET", c.k(key)))
+	err := c.pool.Do(radix.FlatCmd(&data, "GET", c.k(key)))
 	if err != nil {
 		return err
 	}
-
-	if isInt {
-		i = s
-		return nil
-	}
-
-	data = *s.(*[]byte)
 	if data == nil {
 		return ErrNotFound
 	}
@@ -67,25 +55,21 @@ func (c *redis) Get(key string, i interface{}) error {
 }
 
 func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
-	s := i
-	if !isInt(i) {
-		data, err := msgpack.Marshal(i)
-		if err != nil {
-			return err
-		}
-		s = &data
+	data, err := msgpack.Marshal(i)
+	if err != nil {
+		return err
 	}
-
-	return c.pool.Do(radix.FlatCmd(nil, "SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), s))
+	return c.pool.Do(radix.FlatCmd(nil, "SETEX", c.k(key), calculateTtl(ttl, c.ttl).Seconds(), data))
 }
 
 func (c *redis) Incr(key string, ttl time.Duration) error {
-	k := c.k(key)
-	p := radix.Pipeline(
-		radix.FlatCmd(nil, "INCR", k),
-		radix.FlatCmd(nil, "EXPIRE", k, calculateTtl(ttl, c.ttl).Seconds()),
-	)
-	return c.pool.Do(p)
+	var n int64
+	err := c.Get(key, &n)
+	if err != nil && err != ErrNotFound {
+		return err
+	}
+	n++
+	return c.Put(key, n, ttl)
 }
 
 func (c *redis) Invalidate(key string) error {
