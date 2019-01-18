@@ -2,10 +2,9 @@ package cachita
 
 import (
 	"fmt"
+	"github.com/mediocregopher/radix"
 	"github.com/vmihailenco/msgpack"
 	"time"
-
-	"github.com/mediocregopher/radix"
 )
 
 var rCache Cache
@@ -81,11 +80,14 @@ func (c *redis) Put(key string, i interface{}, ttl time.Duration) error {
 
 func (c *redis) Incr(key string, ttl time.Duration) error {
 	k := c.k(key)
-	p := radix.Pipeline(
-		radix.FlatCmd(nil, "INCR", k),
-		radix.FlatCmd(nil, "EXPIRE", k, calculateTtl(ttl, c.ttl).Seconds()),
-	)
-	return c.pool.Do(p)
+	incr := radix.NewEvalScript(1, `
+		local c = redis.call("incr",KEYS[1])
+        if tonumber(c) == 1 then
+    		redis.call("expire",KEYS[1],ARGV[1])
+		end
+`)
+	err := c.pool.Do(incr.Cmd(nil, k, fmt.Sprintf("%.0f", calculateTtl(ttl, c.ttl).Seconds())))
+	return err
 }
 
 func (c *redis) Invalidate(key string) error {
