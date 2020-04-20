@@ -2,18 +2,18 @@
 Cachita is a golang file, memory, SQL, Redis cache library 
 
 [![Build Status](https://travis-ci.org/gadelkareem/cachita.svg)](https://travis-ci.org/gadelkareem/cachita)
-[![GoDoc](https://godoc.org/github.com/gadelkareem/cachita?status.svg)](https://godoc.org/github.com/gadelkareem/cachita)
+[![GoDoc](https://pkg.go.dev/github.com/gadelkareem/cachita?status.svg)](https://pkg.go.dev/github.com/gadelkareem/cachita)
 
 - Simple caching with auto type assertion included.
 - In memory file cache index to avoid unneeded I/O.
 - [Msgpack](https://msgpack.org/index.html) based binary serialization using [msgpack](https://github.com/vmihailenco/msgpack) library for file caching.
 - [radix](https://github.com/mediocregopher/radix) Redis client.
-- Tag cache and invalidate cache keys based on tags, check in the [examples](https://godoc.org/github.com/gadelkareem/cachita#pkg-examples).
+- Tag cache and invalidate cache keys based on tags, check in the [examples](./example_test.go).
 
 
-API docs: https://godoc.org/github.com/gadelkareem/cachita.
+API docs: https://pkg.go.dev/github.com/gadelkareem/cachita.
 
-Examples: https://godoc.org/github.com/gadelkareem/cachita#pkg-examples.
+Examples: ./example_test.go.
 
 ## Installation
 
@@ -115,7 +115,7 @@ ok  	github.com/gadelkareem/cachita	40.188s
 
 ## How to
 
-Please go through [examples](https://godoc.org/github.com/gadelkareem/cachita#pkg-examples) to get an idea how to use this package.
+Please go through [examples](./example_test.go) to get an idea how to use this package.
 
 ## See also
 
