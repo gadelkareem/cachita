@@ -16,7 +16,7 @@ func ExampleCache() {
 	}
 
 	if cache.Exists("cache_key") {
-		//do something
+		// do something
 	}
 
 	var holder string
@@ -25,14 +25,14 @@ func ExampleCache() {
 		panic(err)
 	}
 
-	fmt.Printf("%s", holder) //prints "some data"
+	fmt.Printf("%s", holder) // prints "some data"
 
 	err = cache.Invalidate("cache_key")
 	if err != nil {
 		panic(err)
 	}
 
-	//Output: some data
+	// Output: some data
 
 }
 
@@ -53,7 +53,7 @@ func ExampleMemory() {
 	}
 	fmt.Printf("%+v", cacheObj)
 
-	//Output: map[test:data]
+	// Output: map[test:data]
 
 }
 
@@ -74,16 +74,16 @@ func ExampleFile() {
 		panic(err)
 	}
 
-	fmt.Printf("%s", holder) //prints "some data"
+	fmt.Printf("%s", holder) // prints "some data"
 
-	//Output: some data
+	// Output: some data
 
 }
 
 func ExampleNewMemoryCache() {
-	cache := cachita.NewMemoryCache(1*time.Millisecond, 1*time.Minute) //default ttl 1 millisecond
+	cache := cachita.NewMemoryCache(1*time.Millisecond, 1*time.Minute) // default ttl 1 millisecond
 
-	err := cache.Put("cache_key", "some data", 0) //ttl = 0 means use default
+	err := cache.Put("cache_key", "some data", 0) // ttl = 0 means use default
 	if err != nil {
 		panic(err)
 	}
@@ -91,6 +91,29 @@ func ExampleNewMemoryCache() {
 	time.Sleep(2 * time.Millisecond)
 	fmt.Printf("%t", cache.Exists("cache_key"))
 
-	//Output: false
+	// Output: false
+
+}
+
+func ExampleTaggedCache() {
+	cache := cachita.NewMemoryCache(1*time.Millisecond, 1*time.Minute) // default ttl 1 millisecond
+
+	err := cache.Put("cache_key", "some data", 0) // ttl = 0 means use default
+	if err != nil {
+		panic(err)
+	}
+
+	err = cache.Tag("cache_key", "tag1", "tag2")
+	if err != nil {
+		panic(err)
+	}
+
+	err = cache.InvalidateTags("tag2")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("%t", cache.Exists("cache_key"))
+	// Output: false
 
 }

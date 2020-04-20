@@ -1,11 +1,12 @@
 package cachita
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewFileCache(t *testing.T) {
@@ -98,4 +99,13 @@ func fc(t assert.TestingT) (c Cache) {
 	c, err := File()
 	isError(err, t)
 	return
+}
+
+func TestFile_Tag(t *testing.T) {
+	t.Parallel()
+	cacheTag(fc(t), t)
+}
+
+func BenchmarkFile_Tag(b *testing.B) {
+	benchmarkCacheTag(fc(b), b)
 }

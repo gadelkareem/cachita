@@ -23,9 +23,11 @@ type file struct {
 }
 
 type fileIndex struct {
-	sync.RWMutex
-	records map[string]time.Time
-	path    string
+	recordsMu sync.RWMutex
+	records   map[string]time.Time
+	tagsMu    sync.Mutex
+	tags      map[string][]string
+	path      string
 }
 
 func File() (Cache, error) {
@@ -46,8 +48,9 @@ func File() (Cache, error) {
 func NewFileCache(dir string, ttl, tickerTtl time.Duration) (Cache, error) {
 	var (
 		err error
+		i   *fileIndex
 	)
-	i, err := newIndex(dir, ttl)
+	i, err = newIndex(dir, ttl)
 	if err != nil {
 		return nil, err
 	}
@@ -112,15 +115,47 @@ func (c *file) path(id string) string {
 func (c *file) deleteExpired() {
 	expired := c.i.expiredRecords()
 	for _, id := range expired {
-		os.Remove(c.path(id))
+		_ = os.Remove(c.path(id))
 	}
 }
 
-//----------------------- fileIndex
+func (c *file) InvalidateMulti(keys ...string) (err error) {
+	var ids []string
+	for _, key := range keys {
+		id := Id(key)
+		err = os.Remove(c.path(id))
+		if err != nil && !isNotFound(err) {
+			return
+		}
+	}
+	c.i.removeMulti(ids...)
+	return
+}
+
+// tags are only managed via the index
+func (c *file) Tag(key string, tags ...string) error {
+	c.i.tag(Id(key), tags...)
+	return nil
+}
+
+func (c *file) InvalidateTags(tags ...string) (err error) {
+	ids := c.i.removeTags(tags...)
+	for _, id := range ids {
+		err = os.Remove(c.path(id))
+		if err != nil && !isNotFound(err) {
+			return
+		}
+	}
+	c.i.removeMulti(ids...)
+	return nil
+}
+
+// ----------------------- fileIndex
 
 func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 	i = &fileIndex{path: filepath.Join(dir, Id(FileIndex))}
 	i.records = make(map[string]time.Time)
+	i.tags = make(map[string][]string)
 
 	err = readData(i.path, &i.records)
 	if err != nil && err != ErrNotFound {
@@ -131,8 +166,8 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 		currentDir string
 		files      []os.FileInfo
 	)
-	i.Lock()
-	defer i.Unlock()
+	i.recordsMu.Lock()
+	defer i.recordsMu.Unlock()
 	characters := "0123456789abcdef"
 	for _, char1 := range characters {
 		for _, char2 := range characters {
@@ -170,8 +205,8 @@ func newIndex(dir string, ttl time.Duration) (i *fileIndex, err error) {
 }
 
 func (i *fileIndex) check(id string) error {
-	i.RLock()
-	defer i.RUnlock()
+	i.recordsMu.RLock()
+	defer i.recordsMu.RUnlock()
 	expiredAt, exists := i.records[id]
 	if !exists {
 		return ErrNotFound
@@ -183,8 +218,8 @@ func (i *fileIndex) check(id string) error {
 }
 
 func (i *fileIndex) expiredRecords() []string {
-	i.Lock()
-	defer i.Unlock()
+	i.recordsMu.Lock()
+	defer i.recordsMu.Unlock()
 	var (
 		expired []string
 		records = make(map[string]time.Time)
@@ -205,26 +240,55 @@ func (i *fileIndex) expiredRecords() []string {
 }
 
 func (i *fileIndex) add(id string, expiredAt time.Time) {
-	i.Lock()
-	defer i.Unlock()
+	i.recordsMu.Lock()
+	defer i.recordsMu.Unlock()
 	i.records[id] = expiredAt
 	return
 }
 
 func (i *fileIndex) remove(id string) {
-	i.Lock()
-	defer i.Unlock()
+	i.recordsMu.Lock()
+	defer i.recordsMu.Unlock()
 	delete(i.records, id)
 }
 
-//--------------------
+func (i *fileIndex) removeMulti(ids ...string) {
+	i.recordsMu.Lock()
+	defer i.recordsMu.Unlock()
+	for _, id := range ids {
+		delete(i.records, id)
+	}
+}
+
+func (i *fileIndex) tag(id string, tags ...string) {
+	i.tagsMu.Lock()
+	defer i.tagsMu.Unlock()
+	for _, t := range tags {
+		if inArr(i.tags[t], id) {
+			continue
+		}
+		i.tags[t] = append(i.tags[t], id)
+	}
+}
+
+func (i *fileIndex) removeTags(tags ...string) (ids []string) {
+	i.tagsMu.Lock()
+	for _, t := range tags {
+		ids = append(ids, i.tags[t]...)
+		delete(i.tags, t)
+	}
+	i.tagsMu.Unlock()
+	return
+}
+
+// --------------------
 
 func exists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true, nil
 	}
-	if os.IsNotExist(err) {
+	if isNotFound(err) {
 		return false, nil
 	}
 	return false, err
@@ -233,7 +297,7 @@ func exists(path string) (bool, error) {
 func readData(path string, i interface{}) error {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		if os.IsNotExist(err) || err == io.EOF {
+		if isNotFound(err) {
 			return ErrNotFound
 		}
 		return err
@@ -247,10 +311,15 @@ func readData(path string, i interface{}) error {
 	}
 	return nil
 }
+
 func writeData(path string, i interface{}) error {
 	data, err := msgpack.Marshal(i)
 	if err != nil {
 		return err
 	}
 	return ioutil.WriteFile(path, data, 0666)
+}
+
+func isNotFound(e error) bool {
+	return os.IsNotExist(e) || e == io.EOF
 }

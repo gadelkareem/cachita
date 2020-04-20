@@ -10,6 +10,8 @@ var mCache Cache
 type memory struct {
 	recordsMu sync.RWMutex
 	records   map[string]*record
+	tagsMu    sync.Mutex
+	tags      map[string][]string
 	ttl       time.Duration
 }
 
@@ -23,6 +25,7 @@ func Memory() Cache {
 func NewMemoryCache(ttl, tickerTtl time.Duration) Cache {
 	c := &memory{
 		records: make(map[string]*record),
+		tags:    make(map[string][]string),
 		ttl:     ttl,
 	}
 
@@ -89,4 +92,38 @@ func (c *memory) deleteExpired() {
 		}
 	}
 	c.records = records
+}
+
+func (c *memory) InvalidateMulti(keys ...string) error {
+	c.recordsMu.Lock()
+	defer c.recordsMu.Unlock()
+	for _, key := range keys {
+		delete(c.records, key)
+	}
+	return nil
+}
+
+func (c *memory) Tag(key string, tags ...string) error {
+	c.tagsMu.Lock()
+	defer c.tagsMu.Unlock()
+	for _, t := range tags {
+		if inArr(c.tags[t], key) {
+			continue
+		}
+		c.tags[t] = append(c.tags[t], key)
+	}
+
+	return nil
+}
+
+func (c *memory) InvalidateTags(tags ...string) error {
+	c.tagsMu.Lock()
+	var keys []string
+	for _, t := range tags {
+		keys = append(keys, c.tags[t]...)
+		delete(c.tags, t)
+	}
+	c.tagsMu.Unlock()
+
+	return c.InvalidateMulti(keys...)
 }

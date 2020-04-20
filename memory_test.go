@@ -59,3 +59,12 @@ func TestMemory_Incr(t *testing.T) {
 func BenchmarkMemory_Incr(b *testing.B) {
 	benchmarkCacheIncr(Memory(), b)
 }
+
+func TestMemory_Tag(t *testing.T) {
+	t.Parallel()
+	cacheTag(Memory(), t)
+}
+
+func BenchmarkMemory_Tag(b *testing.B) {
+	benchmarkCacheTag(Memory(), b)
+}

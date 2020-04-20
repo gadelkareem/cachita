@@ -15,8 +15,11 @@ type (
 		Get(key string, i interface{}) error
 		Put(key string, i interface{}, ttl time.Duration) error // ttl 0:default ttl, -1: keep forever
 		Incr(key string, ttl time.Duration) (int64, error)
+		Tag(key string, tags ...string) error
 		Exists(key string) bool
 		Invalidate(key string) error
+		InvalidateMulti(keys ...string) error
+		InvalidateTags(tags ...string) error
 	}
 	record struct {
 		Data      interface{}
@@ -62,6 +65,15 @@ func runEvery(ttl time.Duration, f func()) {
 			}
 		}
 	}()
+}
+
+func inArr(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
 
 func TypeAssert(source, target interface{}) (err error) {

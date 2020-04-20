@@ -2,10 +2,11 @@ package cachita
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func newCache(c Cache, t *testing.T) {
@@ -31,7 +32,7 @@ func cacheExpires(c Cache, t *testing.T, ttl, tts time.Duration) {
 	}
 }
 
-func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ... func(t assert.TestingT, s, d interface{})) {
+func test(c Cache, k string, s, d interface{}, t assert.TestingT, f ...func(t assert.TestingT, s, d interface{})) {
 	k = fmt.Sprintf("%s%d", k, rand.Int())
 	disableAssert := isBenchmark(t)
 
@@ -86,6 +87,30 @@ func testIncr(c Cache, k string, t assert.TestingT) {
 	isError(err, t)
 	if !disableAssert {
 		assert.False(t, c.Exists(k))
+	}
+}
+
+func testTag(c Cache, k string, t assert.TestingT) {
+	k = fmt.Sprintf("%s%d", k, rand.Int())
+	k2 := fmt.Sprintf("%s%d", k, rand.Int())
+	disableAssert := isBenchmark(t)
+
+	err := c.Put(k, "test", 0)
+	isError(err, t)
+	err = c.Put(k2, "test2", 0)
+	isError(err, t)
+
+	tags := []string{"t1", "t2"}
+	err = c.Tag(k, tags[0])
+	isError(err, t)
+	err = c.Tag(k2, tags...)
+	isError(err, t)
+
+	err = c.InvalidateTags(tags...)
+	isError(err, t)
+	if !disableAssert {
+		assert.False(t, c.Exists(k))
+		assert.False(t, c.Exists(k2))
 	}
 }
 
@@ -187,6 +212,18 @@ func benchmarkCacheIncr(c Cache, b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
 			cacheIncr(c, b)
+		}
+	})
+}
+
+func cacheTag(c Cache, t assert.TestingT) {
+	testTag(c, "x", t)
+}
+
+func benchmarkCacheTag(c Cache, b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			cacheTag(c, b)
 		}
 	})
 }

@@ -2,9 +2,10 @@ package cachita
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/mediocregopher/radix/v3"
 	"github.com/vmihailenco/msgpack"
-	"time"
 )
 
 var rCache Cache
@@ -93,17 +94,21 @@ func (c *redis) Incr(key string, ttl time.Duration) (int64, error) {
 }
 
 func (c *redis) Invalidate(key string) error {
-	return c.pool.Do(radix.FlatCmd(nil, "DEL", c.k(key)))
+	return c.pool.Do(radix.Cmd(nil, "DEL", c.k(key)))
 }
 
 func (c *redis) Exists(key string) bool {
 	var b bool
-	c.pool.Do(radix.FlatCmd(&b, "EXISTS", c.k(key)))
-	return b
+	err := c.pool.Do(radix.Cmd(&b, "EXISTS", c.k(key)))
+	return err == nil && b
 }
 
 func (c *redis) k(key string) string {
-	return fmt.Sprintf("%s:%s", c.prefix, key)
+	return fmt.Sprintf("%s:keys::%s", c.prefix, key)
+}
+
+func (c *redis) t(tag string) string {
+	return fmt.Sprintf("%s:tags::%s", c.prefix, tag)
 }
 
 func isInt(i interface{}) bool {
@@ -122,4 +127,44 @@ func isInt(i interface{}) bool {
 		return false
 	}
 	return true
+}
+
+func (c *redis) InvalidateMulti(keys ...string) error {
+	var cmds []radix.CmdAction
+	for _, k := range keys {
+		cmds = append(cmds, radix.FlatCmd(nil, "DEL", c.k(k)))
+	}
+	return c.pool.Do(radix.Pipeline(cmds...))
+}
+
+func (c *redis) Tag(key string, tags ...string) (err error) {
+	rKey := c.k(key)
+	var cmds []radix.CmdAction
+	for _, t := range tags {
+		cmds = append(cmds, radix.FlatCmd(nil, "SADD", c.t(t), rKey))
+	}
+	return c.pool.Do(radix.Pipeline(cmds...))
+}
+
+func (c *redis) InvalidateTags(tags ...string) error {
+	var rKeys, rTags []string
+	for _, t := range tags {
+		var keys []string
+		t = c.t(t)
+		err := c.pool.Do(radix.Cmd(&keys, "SMEMBERS", t))
+		if err != nil {
+			return err
+		}
+		rKeys = append(rKeys, keys...)
+		rTags = append(rTags, t)
+	}
+
+	var cmds []radix.CmdAction
+	for _, k := range rKeys {
+		cmds = append(cmds, radix.FlatCmd(nil, "DEL", k))
+		for _, t := range rTags {
+			cmds = append(cmds, radix.FlatCmd(nil, "SREM", t, k))
+		}
+	}
+	return c.pool.Do(radix.Pipeline(cmds...))
 }

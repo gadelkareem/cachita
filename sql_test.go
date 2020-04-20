@@ -2,10 +2,11 @@ package cachita
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	_ "github.com/lib/pq"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewSqlCache(t *testing.T) {
@@ -69,4 +70,13 @@ func sc(t assert.TestingT) (c Cache) {
 	c, err := Sql("postgres", "postgres://postgres@localhost/test?sslmode=disable")
 	isError(err, t)
 	return
+}
+
+func TestSql_Tag(t *testing.T) {
+	t.Parallel()
+	cacheTag(sc(t), t)
+}
+
+func BenchmarkSql_Tag(b *testing.B) {
+	benchmarkCacheTag(sc(b), b)
 }

@@ -1,9 +1,10 @@
 package cachita
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewRedisCache(t *testing.T) {
@@ -64,4 +65,13 @@ func rc(t assert.TestingT) (c Cache) {
 	c, err := Redis("127.0.0.1:6379")
 	isError(err, t)
 	return
+}
+
+func TestRedis_Tag(t *testing.T) {
+	t.Parallel()
+	cacheTag(rc(t), t)
+}
+
+func BenchmarkRedis_Tag(b *testing.B) {
+	benchmarkCacheTag(rc(b), b)
 }

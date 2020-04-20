@@ -2,6 +2,7 @@ package cachita
 
 import (
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -22,6 +23,11 @@ type row struct {
 	Id        string
 	Value     []byte
 	ExpiredAt int64
+}
+
+type tagRow struct {
+	Id   string
+	Keys string
 }
 
 func Sql(driverName, dataSourceName string) (Cache, error) {
@@ -165,6 +171,10 @@ func (c *sqlCache) createTable() error {
 	if err != nil {
 		return err
 	}
+	_, err = c.db.Exec(fmt.Sprintf("CREATE TABLE IF NOT EXISTS %s_tags (id CHAR(32) NOT NULL PRIMARY KEY, keys TEXT NOT NULL)", c.tableName))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -173,4 +183,77 @@ func (c *sqlCache) placeholder(index int) string {
 		return "$" + strconv.Itoa(index)
 	}
 	return "?"
+}
+
+func (c *sqlCache) InvalidateMulti(keys ...string) error {
+	var ids []string
+	for _, key := range keys {
+		ids = append(ids, Id(key))
+	}
+	_, err := c.db.Exec(fmt.Sprintf("DELETE FROM %s WHERE id IN (%s)", c.tableName, c.placeholder(1)), ids)
+	return err
+}
+
+func (c *sqlCache) Tag(key string, tags ...string) (err error) {
+	id := Id(key)
+	var r *tagRow
+	for _, t := range tags {
+		r, err = c.tagRow(Id(t))
+		if err != nil && err != sql.ErrNoRows {
+			return
+		}
+		r.Keys += fmt.Sprintf(",%s", id)
+		var query string
+		if err == sql.ErrNoRows {
+			query = fmt.Sprintf("INSERT INTO %s_tags (keys, id) VALUES(%s, %s)", c.tableName, c.placeholder(1), c.placeholder(2))
+		} else {
+			query = fmt.Sprintf("UPDATE %s_tags SET keys = %s WHERE id = %s ", c.tableName, c.placeholder(1), c.placeholder(2))
+		}
+		_, err = c.db.Exec(query, r.Keys, r.Id)
+		if err != nil {
+			return
+		}
+	}
+	return nil
+}
+
+func (c *sqlCache) tagRow(id string) (r *tagRow, err error) {
+	r = new(tagRow)
+	r.Id = id
+	query := fmt.Sprintf("SELECT keys FROM %s_tags WHERE id = %s", c.tableName, c.placeholder(1))
+	err = c.db.QueryRow(query, r.Id).Scan(&r.Keys)
+	return
+}
+
+func (c *sqlCache) InvalidateTags(tags ...string) (err error) {
+	var keys string
+	var r *tagRow
+	for _, t := range tags {
+		r, err = c.tagRow(Id(t))
+		if err != nil && err != sql.ErrNoRows {
+			return
+		}
+		if err == sql.ErrNoRows || r == nil {
+			continue
+		}
+		keys += fmt.Sprintf(",%s", r.Keys)
+	}
+	s := sqlKeys(keys)
+	_, err = c.db.Exec(fmt.Sprintf("DELETE FROM %s WHERE id IN (%s)", c.tableName, s))
+
+	return
+}
+func sqlKeys(s string) string {
+	ids := strings.Split(s, ",")
+	var (
+		l []string
+		r string
+	)
+	for _, v := range ids {
+		if !inArr(l, v) && v != "," && v != "" {
+			l = append(l, v)
+			r += fmt.Sprintf("'%s',", v)
+		}
+	}
+	return strings.TrimRight(r, ",")
 }
