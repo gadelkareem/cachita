@@ -130,11 +130,11 @@ func isInt(i interface{}) bool {
 }
 
 func (c *redis) InvalidateMulti(keys ...string) error {
-	var cmds []radix.CmdAction
+	var rKeys []string
 	for _, k := range keys {
-		cmds = append(cmds, radix.FlatCmd(nil, "DEL", c.k(k)))
+		rKeys = append(rKeys, c.k(k))
 	}
-	return c.pool.Do(radix.Pipeline(cmds...))
+	return c.pool.Do(radix.Cmd(nil, "DEL", rKeys...))
 }
 
 func (c *redis) Tag(key string, tags ...string) (err error) {
@@ -159,12 +159,15 @@ func (c *redis) InvalidateTags(tags ...string) error {
 		rTags = append(rTags, t)
 	}
 
-	var cmds []radix.CmdAction
-	for _, k := range rKeys {
-		cmds = append(cmds, radix.FlatCmd(nil, "DEL", k))
-		for _, t := range rTags {
-			cmds = append(cmds, radix.FlatCmd(nil, "SREM", t, k))
+	go func() {
+		var cmds []radix.CmdAction
+		for _, k := range rKeys {
+			for _, t := range rTags {
+				cmds = append(cmds, radix.FlatCmd(nil, "SREM", t, k))
+			}
 		}
-	}
-	return c.pool.Do(radix.Pipeline(cmds...))
+		_ = c.pool.Do(radix.Pipeline(cmds...))
+	}()
+
+	return c.pool.Do(radix.Cmd(nil, "DEL", rKeys...))
 }

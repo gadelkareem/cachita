@@ -100,7 +100,7 @@ func testTag(c Cache, k string, t assert.TestingT) {
 	err = c.Put(k2, "test2", 0)
 	isError(err, t)
 
-	tags := []string{"t1", "t2"}
+	tags := []string{fmt.Sprintf("%d", rand.Int()), fmt.Sprintf("%d", rand.Int())}
 	err = c.Tag(k, tags[0])
 	isError(err, t)
 	err = c.Tag(k2, tags...)
