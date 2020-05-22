@@ -62,55 +62,55 @@ func ExampleCache() {
 ```
 > go test -v -bench=. -benchmem
 BenchmarkFileCacheWithInt
-BenchmarkFileCacheWithInt-8              	   10000	    116118 ns/op	    2447 B/op	      31 allocs/op
+BenchmarkFileCacheWithInt-8              	   12104	    102738 ns/op	    2446 B/op	      31 allocs/op
 BenchmarkFileCacheWithString
-BenchmarkFileCacheWithString-8           	   10909	    123491 ns/op	    2470 B/op	      32 allocs/op
+BenchmarkFileCacheWithString-8           	   10000	    104694 ns/op	    2469 B/op	      32 allocs/op
 BenchmarkFileCacheWithMapInterface
-BenchmarkFileCacheWithMapInterface-8     	    9862	    124641 ns/op	    4499 B/op	      55 allocs/op
+BenchmarkFileCacheWithMapInterface-8     	    9319	    112302 ns/op	    4499 B/op	      55 allocs/op
 BenchmarkFileCacheWithStruct
-BenchmarkFileCacheWithStruct-8           	    9356	    130355 ns/op	    5404 B/op	      60 allocs/op
+BenchmarkFileCacheWithStruct-8           	   10000	    118305 ns/op	    5407 B/op	      60 allocs/op
 BenchmarkFile_Incr
-BenchmarkFile_Incr-8                     	    6331	    192199 ns/op	    3113 B/op	      44 allocs/op
+BenchmarkFile_Incr-8                     	    7056	    225759 ns/op	    3052 B/op	      41 allocs/op
 BenchmarkFile_Tag
-BenchmarkFile_Tag-8                      	    3885	    286273 ns/op	    2720 B/op	      47 allocs/op
+BenchmarkFile_Tag-8                      	    4236	    316565 ns/op	    2802 B/op	      51 allocs/op
 BenchmarkMemoryCacheWithInt
-BenchmarkMemoryCacheWithInt-8            	  870573	      1288 ns/op	     120 B/op	       6 allocs/op
+BenchmarkMemoryCacheWithInt-8            	  873777	      1145 ns/op	     120 B/op	       6 allocs/op
 BenchmarkMemoryCacheWithString
-BenchmarkMemoryCacheWithString-8         	  938899	      1161 ns/op	     136 B/op	       6 allocs/op
+BenchmarkMemoryCacheWithString-8         	  866904	      1185 ns/op	     136 B/op	       6 allocs/op
 BenchmarkMemoryCacheWithMapInterface
-BenchmarkMemoryCacheWithMapInterface-8   	  835402	      1618 ns/op	     536 B/op	      10 allocs/op
+BenchmarkMemoryCacheWithMapInterface-8   	  838364	      1505 ns/op	     536 B/op	      10 allocs/op
 BenchmarkMemoryCacheWithStruct
-BenchmarkMemoryCacheWithStruct-8         	  771076	      1591 ns/op	     680 B/op	      11 allocs/op
+BenchmarkMemoryCacheWithStruct-8         	  790718	      1445 ns/op	     680 B/op	      11 allocs/op
 BenchmarkMemory_Incr
-BenchmarkMemory_Incr-8                   	  649772	      1784 ns/op	     184 B/op	       9 allocs/op
+BenchmarkMemory_Incr-8                   	  731803	      1582 ns/op	     128 B/op	       7 allocs/op
 BenchmarkMemory_Tag
-BenchmarkMemory_Tag-8                    	  361974	      3458 ns/op	     439 B/op	      14 allocs/op
+BenchmarkMemory_Tag-8                    	  349209	      3465 ns/op	     513 B/op	      19 allocs/op
 BenchmarkRedisCacheWithInt
-BenchmarkRedisCacheWithInt-8             	    1404	    787836 ns/op	     492 B/op	      21 allocs/op
+BenchmarkRedisCacheWithInt-8             	    1461	    838600 ns/op	     496 B/op	      21 allocs/op
 BenchmarkRedisCacheWithString
-BenchmarkRedisCacheWithString-8          	    1573	    775092 ns/op	     995 B/op	      32 allocs/op
+BenchmarkRedisCacheWithString-8          	    1593	    765341 ns/op	     995 B/op	      32 allocs/op
 BenchmarkRedisCacheWithMapInterface
-BenchmarkRedisCacheWithMapInterface-8    	    1506	    709349 ns/op	    3074 B/op	      55 allocs/op
+BenchmarkRedisCacheWithMapInterface-8    	    1435	    755585 ns/op	    3071 B/op	      55 allocs/op
 BenchmarkRedisCacheWithStruct
-BenchmarkRedisCacheWithStruct-8          	    1714	    872728 ns/op	    3969 B/op	      61 allocs/op
+BenchmarkRedisCacheWithStruct-8          	    1506	    821237 ns/op	    3963 B/op	      61 allocs/op
 BenchmarkRedis_Incr
-BenchmarkRedis_Incr-8                    	    1153	   1096139 ns/op	    1235 B/op	      32 allocs/op
+BenchmarkRedis_Incr-8                    	    1051	   1042468 ns/op	    1237 B/op	      32 allocs/op
 BenchmarkRedis_Tag
-BenchmarkRedis_Tag-8                     	     379	   3356175 ns/op	    8325 B/op	     201 allocs/op
+BenchmarkRedis_Tag-8                     	     452	   2752817 ns/op	    3509 B/op	     117 allocs/op
 BenchmarkSqlCacheWithInt
-BenchmarkSqlCacheWithInt-8               	     277	   3960950 ns/op	    4741 B/op	     115 allocs/op
+BenchmarkSqlCacheWithInt-8               	     253	   7927815 ns/op	    4984 B/op	     118 allocs/op
 BenchmarkSqlCacheWithString
-BenchmarkSqlCacheWithString-8            	     280	   3979248 ns/op	    4679 B/op	     106 allocs/op
+BenchmarkSqlCacheWithString-8            	       1	1026688775 ns/op	   38224 B/op	     620 allocs/op
 BenchmarkSqlCacheWithMapInterface
-BenchmarkSqlCacheWithMapInterface-8      	     282	   4816726 ns/op	   11444 B/op	     352 allocs/op
+BenchmarkSqlCacheWithMapInterface-8      	     331	   4040482 ns/op	   10741 B/op	     345 allocs/op
 BenchmarkSqlCacheWithStruct
-BenchmarkSqlCacheWithStruct-8            	     230	   4375050 ns/op	   13730 B/op	     425 allocs/op
+BenchmarkSqlCacheWithStruct-8            	     250	   4357675 ns/op	   14142 B/op	     429 allocs/op
 BenchmarkSql_Incr
-BenchmarkSql_Incr-8                      	     199	   6042507 ns/op	    6220 B/op	     154 allocs/op
+BenchmarkSql_Incr-8                      	     234	   5412791 ns/op	    5812 B/op	     150 allocs/op
 BenchmarkSql_Tag
-BenchmarkSql_Tag-8                       	      57	  35618536 ns/op	  836763 B/op	     967 allocs/op
+BenchmarkSql_Tag-8                       	      82	  14308321 ns/op	   15407 B/op	     366 allocs/op
 PASS
-ok  	github.com/gadelkareem/cachita	40.188s
+ok  	github.com/gadelkareem/cachita	41.180s
 ```
 
 ## How to
