@@ -58,14 +58,18 @@ func (c *memory) Put(key string, i interface{}, ttl time.Duration) error {
 }
 
 func (c *memory) Incr(key string, ttl time.Duration) (int64, error) {
-	var n int64
-	err := c.Get(key, &n)
-	if err != nil && err != ErrNotFound && err != ErrExpired {
-		return 0, err
+	 n := int64(1)
+	c.recordsMu.Lock()
+	defer c.recordsMu.Unlock()
+	r, exists := c.records[key]
+	if !exists || r.ExpiredAt.Before(time.Now()){
+		r = &record{Data: n, ExpiredAt: expiredAt(ttl, c.ttl)}
+	}else {
+		n = r.Data.(int64) +1
 	}
-	n++
-	err = c.Put(key, n, ttl)
-	return n, err
+	r.Data = n
+	c.records[key] = r
+	return n, nil
 }
 
 func (c *memory) Invalidate(key string) error {
