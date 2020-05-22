@@ -112,7 +112,10 @@ func (c *sqlCache) Put(key string, i interface{}, ttl time.Duration) error {
 }
 
 func (c *sqlCache) Incr(key string, ttl time.Duration) (int64, error) {
-    var n int64
+    var (
+        n   int64
+        exp = expiredAt(ttl, c.ttl).Unix()
+    )
     r, err := c.row(Id(key))
     if err != nil && err != sql.ErrNoRows {
         return 0, err
@@ -123,6 +126,7 @@ func (c *sqlCache) Incr(key string, ttl time.Duration) (int64, error) {
         if err != nil {
             return 0, err
         }
+        exp = r.ExpiredAt
     }
     n++
     data, err := msgpack.Marshal(n)
@@ -137,7 +141,7 @@ func (c *sqlCache) Incr(key string, ttl time.Duration) (int64, error) {
         query = "UPDATE " + c.tableName + " SET data = " + c.placeholder(1) + ", expired_at= " + c.placeholder(3) + " WHERE id = " + c.placeholder(2)
     }
 
-    _, err = c.db.Exec(query, data, r.Id, expiredAt(ttl, c.ttl).Unix())
+    _, err = c.db.Exec(query, data, r.Id, exp)
     return n, err
 }
 

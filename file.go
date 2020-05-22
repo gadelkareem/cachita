@@ -88,14 +88,16 @@ func (c *file) Put(key string, i interface{}, ttl time.Duration) error {
 }
 
 func (c *file) Incr(key string, ttl time.Duration) (int64, error) {
+    id := Id(key)
+    c.i.checkOrAdd(id, expiredAt(ttl, c.ttl))
     var n int64
-    err := c.Get(key, &n)
-    if err != nil && err != ErrNotFound && err != ErrExpired {
+    path := c.path(id)
+    err := readData(path, &n)
+    if err != nil && !IsErrorOk(err) {
         return 0, err
     }
     n++
-    err = c.Put(key, n, ttl)
-    return n, err
+    return n, writeData(path, &n)
 }
 
 func (c *file) Invalidate(key string) error {
@@ -244,6 +246,15 @@ func (i *fileIndex) add(id string, expiredAt time.Time) {
     defer i.recordsMu.Unlock()
     i.records[id] = expiredAt
     return
+}
+
+func (i *fileIndex) checkOrAdd(id string, expiredAt time.Time) {
+    i.recordsMu.Lock()
+    defer i.recordsMu.Unlock()
+    exp, k := i.records[id]
+    if !k || exp.Before(time.Now()) {
+        i.records[id] = expiredAt
+    }
 }
 
 func (i *fileIndex) remove(id string) {
