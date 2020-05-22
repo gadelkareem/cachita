@@ -13,7 +13,7 @@ Cachita is a golang file, memory, SQL, Redis cache library
 
 API docs: https://pkg.go.dev/github.com/gadelkareem/cachita.
 
-Examples: ./example_test.go.
+Examples: [examples](./example_test.go).
 
 ## Installation
 
