@@ -2,7 +2,7 @@
 Cachita is a golang file, memory, SQL, Redis cache library 
 
 [![Build Status](https://travis-ci.org/gadelkareem/cachita.svg)](https://travis-ci.org/gadelkareem/cachita)
-[![GoDoc](https://pkg.go.dev/github.com/gadelkareem/cachita?status.svg)](https://pkg.go.dev/github.com/gadelkareem/cachita)
+[![GoDoc](https://img.shields.io/badge/godoc-reference-5272B4)](https://pkg.go.dev/github.com/gadelkareem/cachita)
 
 - Simple caching with auto type assertion included.
 - In memory file cache index to avoid unneeded I/O.
