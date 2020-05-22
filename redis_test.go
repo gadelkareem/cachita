@@ -1,77 +1,77 @@
 package cachita
 
 import (
-	"testing"
-	"time"
+    "testing"
+    "time"
 
-	"github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/assert"
 )
 
 func TestNewRedisCache(t *testing.T) {
-	t.Parallel()
-	newCache(rc(t), t)
+    t.Parallel()
+    newCache(rc(t), t)
 }
 
 func TestRedisCacheExpires(t *testing.T) {
-	t.Parallel()
-	cacheExpires(rc(t), t, time.Second, 1200*time.Millisecond)
+    t.Parallel()
+    cacheExpires(rc(t), t, time.Second, 1200*time.Millisecond)
 }
 
 func TestRedisCacheWithInt(t *testing.T) {
-	t.Parallel()
-	cacheWithInt(rc(t), t)
+    t.Parallel()
+    cacheWithInt(rc(t), t)
 }
 func BenchmarkRedisCacheWithInt(b *testing.B) {
-	benchmarkCacheWithInt(rc(b), b)
+    benchmarkCacheWithInt(rc(b), b)
 }
 
 func TestRedisCacheWithString(t *testing.T) {
-	t.Parallel()
-	cacheWithString(rc(t), t)
+    t.Parallel()
+    cacheWithString(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithString(b *testing.B) {
-	benchmarkCacheWithString(rc(b), b)
+    benchmarkCacheWithString(rc(b), b)
 }
 
 func TestRedisCacheWithMapInterface(t *testing.T) {
-	t.Parallel()
-	cacheWithMapInterface(rc(t), t)
+    t.Parallel()
+    cacheWithMapInterface(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithMapInterface(b *testing.B) {
-	benchmarkCacheWithMapInterface(rc(b), b)
+    benchmarkCacheWithMapInterface(rc(b), b)
 }
 
 func TestRedisCacheWithStruct(t *testing.T) {
-	t.Parallel()
-	cacheWithStruct(rc(t), t)
+    t.Parallel()
+    cacheWithStruct(rc(t), t)
 }
 
 func BenchmarkRedisCacheWithStruct(b *testing.B) {
-	benchmarkCacheWithStruct(rc(b), b)
+    benchmarkCacheWithStruct(rc(b), b)
 }
 
 func TestRedis_Incr(t *testing.T) {
-	t.Parallel()
-	cacheIncr(rc(t), t)
+    t.Parallel()
+    cacheIncr(rc(t), t)
 }
 
 func BenchmarkRedis_Incr(b *testing.B) {
-	benchmarkCacheIncr(rc(b), b)
+    benchmarkCacheIncr(rc(b), b)
 }
 
 func rc(t assert.TestingT) (c Cache) {
-	c, err := Redis("127.0.0.1:6379")
-	isError(err, t)
-	return
+    c, err := Redis("127.0.0.1:6379")
+    isError(err, t)
+    return
 }
 
 func TestRedis_Tag(t *testing.T) {
-	t.Parallel()
-	cacheTag(rc(t), t)
+    t.Parallel()
+    cacheTag(rc(t), t)
 }
 
 func BenchmarkRedis_Tag(b *testing.B) {
-	benchmarkCacheTag(rc(b), b)
+    benchmarkCacheTag(rc(b), b)
 }
