@@ -169,5 +169,9 @@ func (c *redis) InvalidateTags(tags ...string) error {
         _ = c.pool.Do(radix.Pipeline(cmds...))
     }()
 
+    if len(rKeys) == 0 {
+        return nil
+    }
+
     return c.pool.Do(radix.Cmd(nil, "DEL", rKeys...))
 }
