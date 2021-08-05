@@ -1,6 +1,8 @@
 package cachita
 
 import (
+    "fmt"
+    "os"
     "testing"
     "time"
 
@@ -62,7 +64,15 @@ func BenchmarkRedis_Incr(b *testing.B) {
 }
 
 func rc(t assert.TestingT) (c Cache) {
-    c, err := Redis("127.0.0.1:6379")
+    h := "127.0.0.1"
+    if os.Getenv("REDIS_HOST") != "" {
+        h = os.Getenv("REDIS_HOST")
+    }
+    p := "6379"
+    if os.Getenv("REDIS_PORT") != "" {
+        h = os.Getenv("REDIS_PORT")
+    }
+    c, err := Redis(fmt.Sprint("%s:%s", h, p))
     isError(err, t)
     return
 }

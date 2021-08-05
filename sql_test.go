@@ -2,6 +2,8 @@ package cachita
 
 import (
     "database/sql"
+    "fmt"
+    "os"
     "testing"
     "time"
 
@@ -67,7 +69,15 @@ func BenchmarkSql_Incr(b *testing.B) {
 }
 
 func sc(t assert.TestingT) (c Cache) {
-    c, err := Sql("postgres", "postgres://postgres@localhost/test?sslmode=disable")
+    h := "localhost"
+    if os.Getenv("POSTGRES_HOST") != "" {
+        h = os.Getenv("POSTGRES_HOST")
+    }
+    p := "5432"
+    if os.Getenv("POSTGRES_PORT") != "" {
+        h = os.Getenv("POSTGRES_PORT")
+    }
+    c, err := Sql("postgres", fmt.Sprint("postgres://postgres@%s:%s/test?sslmode=disable", h, p))
     isError(err, t)
     return
 }
