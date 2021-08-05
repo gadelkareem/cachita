@@ -108,6 +108,7 @@ func (c *memory) InvalidateMulti(keys ...string) error {
 }
 
 func (c *memory) Tag(key string, tags ...string) error {
+    tags = uniqueTags(tags)
     c.tagsMu.Lock()
     defer c.tagsMu.Unlock()
     for _, t := range tags {
@@ -121,6 +122,7 @@ func (c *memory) Tag(key string, tags ...string) error {
 }
 
 func (c *memory) InvalidateTags(tags ...string) error {
+    tags = uniqueTags(tags)
     c.tagsMu.Lock()
     var keys []string
     for _, t := range tags {

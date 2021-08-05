@@ -138,6 +138,7 @@ func (c *redis) InvalidateMulti(keys ...string) error {
 }
 
 func (c *redis) Tag(key string, tags ...string) (err error) {
+    tags = uniqueTags(tags)
     rKey := c.k(key)
     var cmds []radix.CmdAction
     for _, t := range tags {
@@ -147,6 +148,7 @@ func (c *redis) Tag(key string, tags ...string) (err error) {
 }
 
 func (c *redis) InvalidateTags(tags ...string) error {
+    tags = uniqueTags(tags)
     var rKeys, rTags []string
     for _, t := range tags {
         var keys []string

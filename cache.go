@@ -168,3 +168,21 @@ func deReference(v reflect.Value) reflect.Value {
     }
     return v
 }
+
+func uniqueTags(a []string) (u []string) {
+    hs := make(map[string]struct{})
+
+    for _, s := range a {
+        if s == "" {
+            continue
+        }
+        hs[s] = struct{}{}
+    }
+    for s := range hs {
+        if s == "" {
+            continue
+        }
+        u = append(u, s)
+    }
+    return
+}

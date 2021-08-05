@@ -136,11 +136,13 @@ func (c *file) InvalidateMulti(keys ...string) (err error) {
 
 // tags are only managed via the index
 func (c *file) Tag(key string, tags ...string) error {
+    tags = uniqueTags(tags)
     c.i.tag(Id(key), tags...)
     return nil
 }
 
 func (c *file) InvalidateTags(tags ...string) (err error) {
+    tags = uniqueTags(tags)
     ids := c.i.removeTags(tags...)
     for _, id := range ids {
         err = os.Remove(c.path(id))
@@ -272,6 +274,7 @@ func (i *fileIndex) removeMulti(ids ...string) {
 }
 
 func (i *fileIndex) tag(id string, tags ...string) {
+    tags = uniqueTags(tags)
     i.tagsMu.Lock()
     defer i.tagsMu.Unlock()
     for _, t := range tags {
@@ -283,6 +286,7 @@ func (i *fileIndex) tag(id string, tags ...string) {
 }
 
 func (i *fileIndex) removeTags(tags ...string) (ids []string) {
+    tags = uniqueTags(tags)
     i.tagsMu.Lock()
     for _, t := range tags {
         ids = append(ids, i.tags[t]...)
