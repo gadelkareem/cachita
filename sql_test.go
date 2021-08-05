@@ -2,7 +2,6 @@ package cachita
 
 import (
     "database/sql"
-    "fmt"
     "os"
     "testing"
     "time"
@@ -77,7 +76,7 @@ func sc(t assert.TestingT) (c Cache) {
     if os.Getenv("POSTGRES_PORT") != "" {
         h = os.Getenv("POSTGRES_PORT")
     }
-    c, err := Sql("postgres", fmt.Sprint("postgres://postgres@%s:%s/test?sslmode=disable", h, p))
+    c, err := Sql("postgres", "postgres://postgres@"+h+":"+p+"/test?sslmode=disable")
     isError(err, t)
     return
 }

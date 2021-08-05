@@ -1,7 +1,6 @@
 package cachita
 
 import (
-    "fmt"
     "os"
     "testing"
     "time"
@@ -72,7 +71,7 @@ func rc(t assert.TestingT) (c Cache) {
     if os.Getenv("REDIS_PORT") != "" {
         h = os.Getenv("REDIS_PORT")
     }
-    c, err := Redis(fmt.Sprint("%s:%s", h, p))
+    c, err := Redis(h + ":" + p)
     isError(err, t)
     return
 }
